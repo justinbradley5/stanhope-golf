@@ -1,0 +1,2371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Stanhope Golf">
+<title>Stanhope Golf</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --green-deep: #1a3a2a;
+    --green-mid: #2d5a3d;
+    --green-light: #4a8c5c;
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --cream: #f5f0e8;
+    --white: #ffffff;
+    --text-dark: #1a1a1a;
+    --text-mid: #4a4a4a;
+    --text-light: #8a8a8a;
+    --red: #c0392b;
+    --blue: #2980b9;
+    --card-bg: rgba(255,255,255,0.97);
+    --shadow: 0 4px 24px rgba(0,0,0,0.12);
+    --radius: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--green-deep);
+    color: var(--text-dark);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 20%, rgba(74,140,92,0.3) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 80%, rgba(45,90,61,0.4) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #app { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+  .header {
+    background: linear-gradient(135deg, var(--green-deep) 0%, var(--green-mid) 100%);
+    padding: 48px 24px 24px;
+    text-align: center;
+    border-bottom: 2px solid var(--gold);
+    position: relative;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -6px; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--cream);
+    letter-spacing: 0.5px;
+    line-height: 1.1;
+  }
+  .header h1 span { color: var(--gold); }
+  .header p {
+    font-size: 12px;
+    color: rgba(245,240,232,0.6);
+    margin-top: 4px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .nav {
+    display: flex;
+    background: var(--green-deep);
+    border-bottom: 1px solid rgba(201,168,76,0.3);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav-btn {
+    flex: 1;
+    min-width: 70px;
+    padding: 12px 6px;
+    background: none;
+    border: none;
+    color: rgba(245,240,232,0.5);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-bottom: 2px solid transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+  .nav-btn .icon { font-size: 16px; }
+  .nav-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  .content { flex: 1; padding: 20px 16px; max-width: 600px; margin: 0 auto; width: 100%; }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--green-deep);
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(201,168,76,0.3);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+  }
+  .btn-primary { background: linear-gradient(135deg, var(--green-mid), var(--green-light)); color: white; }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-gold { background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: var(--green-deep); }
+  .btn-outline { background: transparent; border: 1.5px solid var(--green-mid); color: var(--green-mid); }
+  .btn-danger { background: transparent; border: 1.5px solid var(--red); color: var(--red); }
+  .btn-sm { padding: 8px 14px; font-size: 13px; width: auto; }
+  .btn-purple { background: linear-gradient(135deg, #6c3483, #9b59b6); color: white; }
+
+  .form-group { margin-bottom: 14px; }
+  .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 6px; letter-spacing: 0.5px; text-transform: uppercase; }
+  .form-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid #e0d8cc;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    color: var(--text-dark);
+    background: white;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus { border-color: var(--green-light); }
+
+  .score-input {
+    width: 38px;
+    padding: 4px 2px;
+    border: 1.5px solid #ddd;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    -moz-appearance: textfield;
+    background: white;
+  }
+  .score-input::-webkit-inner-spin-button,
+  .score-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+  .score-input:focus { outline: none; border-color: var(--green-light); }
+  .score-input.eagle { background: #ffd700; color: #333; }
+  .score-input.birdie { background: #c8e6c9; color: #1b5e20; }
+  .score-input.par-score { background: white; }
+  .score-input.bogey { background: #ffccbc; color: #bf360c; }
+  .score-input.double { background: #ef9a9a; color: #b71c1c; }
+  .score-input.worse { background: #ce93d8; color: #4a148c; }
+
+  .leaderboard-item {
+    display: flex;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid #f0ebe0;
+    gap: 12px;
+  }
+  .leaderboard-item:last-child { border-bottom: none; }
+  .lb-rank {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--green-deep);
+    color: var(--gold);
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .lb-rank.gold { background: var(--gold); color: var(--green-deep); }
+  .lb-rank.silver { background: #aaa; color: white; }
+  .lb-rank.bronze { background: #cd7f32; color: white; }
+  .lb-name { flex: 1; font-weight: 600; font-size: 15px; }
+  .lb-hcap { font-size: 12px; color: var(--text-light); }
+  .lb-scores { text-align: right; }
+  .lb-gross { font-size: 13px; color: var(--text-mid); }
+  .lb-net { font-size: 18px; font-weight: 700; color: var(--green-deep); }
+  .lb-net.under { color: var(--blue); }
+  .lb-net.over { color: var(--red); }
+  .lb-thru { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+
+  .player-chip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: #f9f5ec;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    border: 1px solid #e8e0cc;
+  }
+  .player-chip-name { font-weight: 600; font-size: 15px; }
+  .player-chip-hcap { font-size: 13px; color: var(--text-mid); }
+  .remove-btn { background: none; border: none; color: var(--red); font-size: 20px; cursor: pointer; padding: 0 4px; line-height: 1; }
+
+  .round-item { padding: 14px 0; border-bottom: 1px solid #f0ebe0; cursor: pointer; }
+  .round-item:last-child { border-bottom: none; }
+  .round-date { font-size: 12px; color: var(--text-light); margin-bottom: 4px; }
+  .round-players { font-size: 14px; font-weight: 600; color: var(--green-deep); }
+  .round-winner { font-size: 13px; color: var(--text-mid); margin-top: 2px; }
+
+  .toast {
+    position: fixed;
+    bottom: 90px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--green-deep);
+    color: var(--gold);
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-size: 13px; font-weight: 600;
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 100;
+    white-space: nowrap;
+    border: 1px solid var(--gold);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .loading { display: flex; align-items: center; justify-content: center; padding: 40px; color: var(--cream); font-size: 14px; gap: 10px; }
+  .spinner { width: 20px; height: 20px; border: 2px solid rgba(201,168,76,0.3); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty { text-align: center; padding: 40px 20px; color: var(--text-light); }
+  .empty .icon { font-size: 48px; margin-bottom: 12px; }
+  .empty p { font-size: 14px; }
+
+  .inner-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .inner-tab {
+    flex: 1;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1.5px solid #e0d8cc;
+    background: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 600;
+    color: var(--text-mid);
+    cursor: pointer; text-align: center;
+    transition: all 0.2s;
+  }
+  .inner-tab.active { background: var(--green-deep); border-color: var(--green-deep); color: var(--gold); }
+
+  .hidden { display: none !important; }
+
+  /* Mode badge for game type */
+  .mode-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .mode-stroke { background: #e8f5e9; color: var(--green-mid); }
+  .mode-scramble { background: #fff3e0; color: #e65100; }
+  .mode-bestball { background: #e3f2fd; color: #1565c0; }
+  .mode-stableford { background: #f3e5f5; color: #6a1b9a; }
+  .mode-matchplay { background: #fce4ec; color: #880e4f; }
+  .mode-skins { background: #fff8e1; color: #f57f17; }
+
+  /* Tournament styles */
+  .tournament-card {
+    border: 2px solid var(--gold);
+    background: linear-gradient(135deg, #fffdf5, #fff);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .tournament-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--green-deep);
+  }
+  .tournament-meta { font-size: 12px; color: var(--text-light); margin-top: 3px; }
+
+  /* Message board */
+  .message-item {
+    padding: 12px 0;
+    border-bottom: 1px solid #f0ebe0;
+  }
+  .message-item:last-child { border-bottom: none; }
+  .message-author { font-weight: 700; font-size: 14px; color: var(--green-deep); }
+  .message-time { font-size: 11px; color: var(--text-light); margin-left: 8px; }
+  .message-text { font-size: 14px; color: var(--text-dark); margin-top: 4px; line-height: 1.5; }
+  .message-reactions { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+  .reaction-btn {
+    background: #f5f0e8;
+    border: 1px solid #e0d8cc;
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .reaction-btn:active { transform: scale(1.2); }
+  .reaction-btn.reacted { background: #e8f5e9; border-color: var(--green-light); }
+
+  /* Handicap exclusion toggle */
+  .hcap-exclude-btn {
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1.5px solid #e0d8cc;
+    background: white;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-mid);
+  }
+  .hcap-exclude-btn.excluded {
+    background: #fce4ec;
+    border-color: var(--red);
+    color: var(--red);
+  }
+
+  /* Historic rounds list in stats */
+  .history-round-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0ebe0;
+    gap: 10px;
+    font-size: 13px;
+  }
+  .history-round-row:last-child { border-bottom: none; }
+  .history-round-row.excluded-round { opacity: 0.5; }
+
+  /* Firebase overlay */
+  .firebase-overlay {
+    position: fixed; inset: 0;
+    background: rgba(26,58,42,0.95);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .firebase-box {
+    background: white;
+    border-radius: 20px;
+    padding: 28px 24px;
+    max-width: 480px;
+    width: 100%;
+  }
+  .firebase-box h2 { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--green-deep); margin-bottom: 10px; }
+  .firebase-box p { font-size: 14px; color: var(--text-mid); line-height: 1.6; margin-bottom: 14px; }
+  .firebase-box ol { font-size: 13px; color: var(--text-mid); line-height: 2; padding-left: 18px; margin-bottom: 16px; }
+  .firebase-box a { color: var(--green-mid); font-weight: 600; }
+  .firebase-box .note { background: #f9f5ec; border-radius: 8px; padding: 10px 12px; font-size: 12px; color: var(--text-mid); margin-bottom: 16px; }
+</style>
+</head>
+<body>
+
+<!-- FIREBASE SETUP OVERLAY -->
+<div class="firebase-overlay" id="firebaseOverlay">
+  <div class="firebase-box">
+    <h2>⛳ One-Time Setup</h2>
+    <p>Stanhope Golf needs a Firebase database so your whole group shares the same data in real time. It's free and takes about 5 minutes.</p>
+    <ol>
+      <li>Go to <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a></li>
+      <li>Click <strong>Add project</strong> → name it "Stanhope Golf" → Continue</li>
+      <li>Disable Google Analytics → Create project</li>
+      <li>Click <strong>Realtime Database</strong> in the left menu → Create database</li>
+      <li>Choose <strong>Start in test mode</strong> → Enable</li>
+      <li>Click ⚙️ gear → <strong>Project settings</strong> → scroll to "Your apps" → click <strong>&lt;/&gt;</strong> (Web)</li>
+      <li>Register app → copy the <code>firebaseConfig</code> values below</li>
+    </ol>
+    <div class="note">⚠️ Paste ALL fields below. Leave any blank if you don't have it.</div>
+    <div class="form-group">
+      <label class="form-label">API Key</label>
+      <input class="form-input" id="cfg-apiKey" placeholder="AIza...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Auth Domain</label>
+      <input class="form-input" id="cfg-authDomain" placeholder="your-app.firebaseapp.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Database URL</label>
+      <input class="form-input" id="cfg-databaseURL" placeholder="https://your-app-default-rtdb.firebaseio.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Project ID</label>
+      <input class="form-input" id="cfg-projectId" placeholder="your-app">
+    </div>
+    <div class="form-group">
+      <label class="form-label">App ID</label>
+      <input class="form-input" id="cfg-appId" placeholder="1:123456:web:abc123">
+    </div>
+    <button class="btn btn-gold" onclick="saveFirebaseConfig()">Connect & Start Playing 🏌️</button>
+    <button class="btn btn-outline" style="margin-top:10px" onclick="useDemoMode()">Try Demo Mode (no sharing)</button>
+  </div>
+</div>
+
+<div id="app">
+  <div class="header">
+    <h1>Stanhope <span>Golf</span></h1>
+    <p>& Country Club · PEI</p>
+  </div>
+
+  <nav class="nav">
+    <button class="nav-btn active" onclick="showTab('leaderboard')" id="nav-leaderboard"><span class="icon">🏆</span>Board</button>
+    <button class="nav-btn" onclick="showTab('play')" id="nav-play"><span class="icon">⛳</span>Play</button>
+    <button class="nav-btn" onclick="showTab('history')" id="nav-history"><span class="icon">📋</span>History</button>
+    <button class="nav-btn" onclick="showTab('tournaments')" id="nav-tournaments"><span class="icon">🎖️</span>Events</button>
+    <button class="nav-btn" onclick="showTab('records')" id="nav-records"><span class="icon">🥇</span>Records</button>
+    <button class="nav-btn" onclick="showTab('stats')" id="nav-stats"><span class="icon">📊</span>Stats</button>
+    <button class="nav-btn" onclick="showTab('board')" id="nav-board"><span class="icon">💬</span>Board</button>
+    <button class="nav-btn" onclick="showTab('players')" id="nav-players"><span class="icon">👥</span>Players</button>
+  </nav>
+
+  <div class="content">
+
+    <!-- LEADERBOARD TAB -->
+    <div id="tab-leaderboard">
+      <div class="card">
+        <div class="card-title">Live Leaderboard</div>
+        <div class="inner-tabs">
+          <button class="inner-tab active" onclick="setLbTab('net')" id="lbtab-net">Net Score</button>
+          <button class="inner-tab" onclick="setLbTab('gross')" id="lbtab-gross">Gross Score</button>
+        </div>
+        <div id="leaderboard-content">
+          <div class="empty"><div class="icon">🌿</div><p>No active round.<br>Head to Play to start one!</p></div>
+        </div>
+      </div>
+      <div class="card" id="active-round-card" style="display:none">
+        <div class="card-title" id="active-round-title">Current Round</div>
+        <button class="btn btn-primary" onclick="continueRound()">Continue Scoring →</button>
+      </div>
+    </div>
+
+    <!-- PLAY TAB -->
+    <div id="tab-play" class="hidden">
+
+      <div id="play-start">
+        <div class="card">
+          <div class="card-title">Start a Round</div>
+          <div class="form-group">
+            <label class="form-label">Date</label>
+            <input type="date" class="form-input" id="round-date">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tee</label>
+            <select class="form-input" id="round-tee">
+              <option value="white">White (Rating 70.7 / Slope 121)</option>
+              <option value="blue">Blue (Rating 72.5 / Slope 124)</option>
+              <option value="green">Green (Rating 69.2 / Slope 117)</option>
+            </select>
+          </div>
+
+          <!-- NEW: Game Mode Selector -->
+          <div class="form-group">
+            <label class="form-label">Game Mode</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="game-mode-grid">
+              <button class="mode-select-btn active" data-mode="stroke" onclick="selectMode('stroke')" style="padding:10px 8px;border-radius:10px;border:2px solid var(--green-mid);background:var(--green-deep);color:var(--gold);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s">🏌️ Stroke Play</button>
+              <button class="mode-select-btn" data-mode="scramble" onclick="selectMode('scramble')" style="padding:10px 8px;border-radius:10px;border:2px solid #e0d8cc;background:white;color:var(--text-mid);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s">🔀 Scramble</button>
+              <button class="mode-select-btn" data-mode="bestball" onclick="selectMode('bestball')" style="padding:10px 8px;border-radius:10px;border:2px solid #e0d8cc;background:white;color:var(--text-mid);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s">⭐ Best Ball</button>
+              <button class="mode-select-btn" data-mode="stableford" onclick="selectMode('stableford')" style="padding:10px 8px;border-radius:10px;border:2px solid #e0d8cc;background:white;color:var(--text-mid);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s">🎯 Stableford</button>
+              <button class="mode-select-btn" data-mode="matchplay" onclick="selectMode('matchplay')" style="padding:10px 8px;border-radius:10px;border:2px solid #e0d8cc;background:white;color:var(--text-mid);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s">⚔️ Match Play</button>
+              <button class="mode-select-btn" data-mode="skins" onclick="selectMode('skins')" style="padding:10px 8px;border-radius:10px;border:2px solid #e0d8cc;background:white;color:var(--text-mid);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s">💰 Skins</button>
+            </div>
+            <div id="mode-description" style="margin-top:8px;font-size:12px;color:var(--text-mid);padding:8px 12px;background:#f9f5ec;border-radius:8px">Each player records their individual stroke score on every hole.</div>
+          </div>
+
+          <p style="font-size:13px;color:var(--text-mid);margin-bottom:12px">Add players from your roster or type a name:</p>
+          <div id="player-select-list"></div>
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <input class="form-input" id="quick-player-name" placeholder="Player name" style="flex:1">
+            <input class="form-input" id="quick-player-hcap" placeholder="HCP" type="number" min="0" max="54" step="0.1" style="width:70px">
+            <button class="btn btn-outline btn-sm" onclick="quickAddPlayer()">Add</button>
+          </div>
+          <div id="round-player-list" style="margin-top:12px"></div>
+          <button class="btn btn-gold" style="margin-top:16px" onclick="startRound()">Start Round ⛳</button>
+        </div>
+      </div>
+
+      <!-- Scoring view -->
+      <div id="play-scoring" class="hidden">
+        <div class="card" style="padding:14px 16px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-size:12px;color:var(--text-light);text-transform:uppercase;letter-spacing:1px">Round in Progress</div>
+              <div id="scoring-date" style="font-weight:700;color:var(--green-deep);font-size:16px"></div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <span id="scoring-mode-badge" class="mode-badge mode-stroke">Stroke</span>
+              <button class="btn btn-outline btn-sm" onclick="finishRound()" style="color:var(--green-mid)">Finish</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="padding:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <button class="btn btn-outline btn-sm" onclick="prevHole()" id="prev-btn">← Prev</button>
+            <div style="text-align:center">
+              <div style="font-size:24px;font-weight:900;font-family:'Playfair Display',serif;color:var(--green-deep)" id="current-hole-num">1</div>
+              <div style="font-size:12px;color:var(--text-light)" id="current-hole-info">Par 5 · SI 12</div>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="nextHole()" id="next-btn">Next →</button>
+          </div>
+          <div style="display:flex;gap:3px;justify-content:center;margin-bottom:10px" id="hole-dots"></div>
+        </div>
+
+        <div id="hole-score-inputs"></div>
+
+        <div class="card">
+          <div class="card-title">Running Totals</div>
+          <div id="running-totals"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY TAB -->
+    <div id="tab-history" class="hidden">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(201,168,76,0.3)">
+          <div class="card-title" style="margin:0;padding:0;border:none">Past Rounds</div>
+          <button class="btn btn-gold btn-sm" onclick="openImport()">+ Import Round</button>
+        </div>
+        <div id="history-list">
+          <div class="empty"><div class="icon">📋</div><p>No completed rounds yet.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- IMPORT MODAL -->
+    <div id="import-modal" class="hidden" style="position:fixed;inset:0;background:rgba(26,58,42,0.97);z-index:160;overflow-y:auto;padding:16px 16px 60px">
+      <div style="background:white;border-radius:16px;padding:20px;max-width:600px;margin:0 auto">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--green-deep)">Import Round</div>
+          <button onclick="closeImport()" style="background:none;border:none;font-size:32px;cursor:pointer;color:var(--text-mid);line-height:1">×</button>
+        </div>
+        <div style="background:linear-gradient(135deg,#1a3a2a,#2d5a3d);border-radius:12px;padding:16px;margin-bottom:16px;text-align:center">
+          <div style="font-size:28px;margin-bottom:6px">📷</div>
+          <div style="color:var(--gold);font-weight:700;font-size:15px;margin-bottom:4px">Scan Scorecard with Camera</div>
+          <div style="color:rgba(245,240,232,0.7);font-size:12px;margin-bottom:12px">Take a photo of your scorecard and AI will read the scores automatically</div>
+          <input type="file" id="scorecard-camera" accept="image/*" capture="environment" style="display:none" onchange="scanScorecard(event)">
+          <button class="btn btn-gold" onclick="document.getElementById('scorecard-camera').click()" style="width:auto;padding:10px 24px">📷 Open Camera</button>
+          <div id="scan-status" style="margin-top:10px;font-size:12px;color:rgba(245,240,232,0.7)"></div>
+        </div>
+        <div style="text-align:center;font-size:12px;color:var(--text-light);margin-bottom:16px">— or enter scores manually —</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+          <div><label class="form-label">Date</label><input type="date" class="form-input" id="import-date"></div>
+          <div><label class="form-label">Tee</label><select class="form-input" id="import-tee"><option value="white">White</option><option value="blue">Blue</option><option value="green">Green</option></select></div>
+        </div>
+        <label class="form-label">Players</label>
+        <div id="import-player-list" style="margin-bottom:8px"></div>
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+          <input class="form-input" id="import-player-name" placeholder="Player name" style="flex:1">
+          <input class="form-input" id="import-player-hcap" placeholder="HCP" type="number" min="0" max="54" step="0.1" style="width:70px">
+          <button class="btn btn-outline btn-sm" onclick="addImportPlayer()">Add</button>
+        </div>
+        <div id="import-score-grid" style="display:none">
+          <label class="form-label" style="margin-bottom:10px">Scores</label>
+          <div id="import-grid-inner"></div>
+        </div>
+        <button class="btn btn-gold" style="margin-top:16px" onclick="saveImportRound()">Save Round ✓</button>
+      </div>
+    </div>
+
+    <!-- TOURNAMENTS TAB -->
+    <div id="tab-tournaments" class="hidden">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(201,168,76,0.3)">
+          <div class="card-title" style="margin:0;padding:0;border:none">🎖️ Tournaments</div>
+          <button class="btn btn-gold btn-sm" onclick="openCreateTournament()">+ Create</button>
+        </div>
+        <div id="tournament-list">
+          <div class="empty"><div class="icon">🏆</div><p>No tournaments yet.<br>Create one to track a series!</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CREATE TOURNAMENT MODAL -->
+    <div id="tournament-modal" class="hidden" style="position:fixed;inset:0;background:rgba(26,58,42,0.97);z-index:160;overflow-y:auto;padding:16px 16px 60px">
+      <div style="background:white;border-radius:16px;padding:20px;max-width:600px;margin:0 auto">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--green-deep)" id="tournament-modal-title">Create Tournament</div>
+          <button onclick="closeTournamentModal()" style="background:none;border:none;font-size:32px;cursor:pointer;color:var(--text-mid);line-height:1">×</button>
+        </div>
+        <div class="form-group"><label class="form-label">Tournament Name</label><input class="form-input" id="t-name" placeholder="e.g. Stanhope Summer Cup"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="form-group"><label class="form-label">Start Date</label><input type="date" class="form-input" id="t-start"></div>
+          <div class="form-group"><label class="form-label">End Date</label><input type="date" class="form-input" id="t-end"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Format</label>
+          <select class="form-input" id="t-format">
+            <option value="stroke">Stroke Play (lowest total wins)</option>
+            <option value="stableford">Stableford (most points wins)</option>
+            <option value="matchplay">Match Play Bracket</option>
+            <option value="skins">Skins Game</option>
+            <option value="bestball">Best Ball</option>
+            <option value="scramble">Scramble</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Scoring</label><select class="form-input" id="t-scoring"><option value="net">Net</option><option value="gross">Gross</option></select></div>
+        <div class="form-group"><label class="form-label">Number of Rounds</label><input type="number" class="form-input" id="t-rounds" value="1" min="1" max="10"></div>
+        <div class="form-group">
+          <label class="form-label">Description / Notes (optional)</label>
+          <textarea class="form-input" id="t-desc" rows="2" placeholder="Entry fee, prizes, special rules..."></textarea>
+        </div>
+        <label class="form-label">Participants</label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px" id="t-player-select"></div>
+        <button class="btn btn-gold" onclick="saveTournament()" id="t-save-btn">Create Tournament 🏆</button>
+      </div>
+    </div>
+
+    <!-- TOURNAMENT DETAIL MODAL -->
+    <div id="tournament-detail-modal" class="hidden" style="position:fixed;inset:0;background:rgba(26,58,42,0.97);z-index:160;overflow-y:auto;padding:16px 16px 60px">
+      <div style="background:white;border-radius:16px;padding:20px;max-width:600px;margin:0 auto" id="tournament-detail-content"></div>
+    </div>
+
+    <!-- RECORDS TAB -->
+    <div id="tab-records" class="hidden">
+      <div class="card">
+        <div class="card-title">All-Time Records</div>
+        <div class="inner-tabs">
+          <button class="inner-tab active" onclick="setRecordsTab('net')" id="rectab-net">Net</button>
+          <button class="inner-tab" onclick="setRecordsTab('gross')" id="rectab-gross">Gross</button>
+        </div>
+        <div id="records-content"><div class="empty"><div class="icon">🏅</div><p>Complete some rounds to see records!</p></div></div>
+      </div>
+    </div>
+
+    <!-- STATS TAB -->
+    <div id="tab-stats" class="hidden">
+      <div class="card">
+        <div class="card-title">Player Stats</div>
+        <div id="stats-player-select" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px"></div>
+        <div id="stats-content"><div class="empty"><div class="icon">📊</div><p>Select a player above to see their stats.</p></div></div>
+      </div>
+    </div>
+
+    <!-- MESSAGE BOARD TAB -->
+    <div id="tab-board" class="hidden">
+      <div class="card">
+        <div class="card-title">💬 Club Board</div>
+        <!-- Post composer -->
+        <div style="margin-bottom:16px">
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <select class="form-input" id="msg-author" style="flex:1">
+              <option value="">Select your name...</option>
+            </select>
+          </div>
+          <textarea class="form-input" id="msg-text" rows="3" placeholder="Post a message, brag about your birdie, or call out a sandbagging handicap... 🏌️" style="resize:none"></textarea>
+          <button class="btn btn-gold" style="margin-top:8px" onclick="postMessage()">Post to Board 📢</button>
+        </div>
+        <div id="board-messages">
+          <div class="empty"><div class="icon">💬</div><p>No messages yet.<br>Be the first to post!</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLAYERS TAB -->
+    <div id="tab-players" class="hidden">
+      <div class="card">
+        <div class="card-title">Player Roster</div>
+        <div id="roster-list"></div>
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid #f0ebe0">
+          <div class="form-group"><label class="form-label">Name</label><input class="form-input" id="new-player-name" placeholder="e.g. Justin"></div>
+          <div class="form-group"><label class="form-label">Handicap Index</label><input class="form-input" type="number" id="new-player-hcap" placeholder="e.g. 14.2" min="0" max="54" step="0.1"></div>
+          <button class="btn btn-primary" onclick="addPlayer()">Add to Roster</button>
+        </div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid #f0ebe0">
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-outline" onclick="loadTestData()" style="font-size:12px;color:var(--text-light);border-color:#e0d8cc">🧪 Load Test Data</button>
+            <button class="btn btn-danger btn-sm" onclick="clearAllData()" style="font-size:12px">🗑 Clear All Data</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end content -->
+</div><!-- end app -->
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, set, get, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+window._firebase = { initializeApp, getDatabase, ref, set, get, push, onValue, update, remove };
+window._firebaseReady = true;
+window.dispatchEvent(new Event('firebaseReady'));
+</script>
+
+<script>
+// ─── COURSE DATA ─────────────────────────────────────────────────────────────
+const COURSE = {
+  name: "Stanhope Golf & Country Club",
+  holes: 18,
+  par: [5,4,3,4,4,3,4,4,5, 3,4,5,3,4,4,4,5,4],
+  si:  [12,2,18,4,10,16,6,8,14, 15,5,17,13,1,3,9,7,11],
+  tees: {
+    white: { rating: 70.7, slope: 121 },
+    blue:  { rating: 72.5, slope: 124 },
+    green: { rating: 69.2, slope: 117 }
+  }
+};
+
+const MODE_DESCRIPTIONS = {
+  stroke: 'Each player records their individual stroke score on every hole.',
+  scramble: 'All players hit, then everyone plays from the best shot. One team score per hole.',
+  bestball: 'Each player plays their own ball. The best (lowest) score on the team counts per hole.',
+  stableford: 'Points awarded based on score vs par. Double bogey = 0, Bogey = 1, Par = 2, Birdie = 3, Eagle = 4.',
+  matchplay: 'Holes are won or lost individually. Track who wins each hole.',
+  skins: 'Each hole is worth a "skin." Tie = skin carries over. Most skins at the end wins.'
+};
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let db = null;
+let demoMode = false;
+let currentTab = 'leaderboard';
+let lbTab = 'net';
+let currentHole = 0;
+let activeRound = null;
+let roster = [];
+let rounds = [];
+let tournaments = [];
+let messages = [];
+let roundPlayers = [];
+let selectedGameMode = 'stroke';
+let editingTournamentId = null;
+
+// ─── FIREBASE INIT ────────────────────────────────────────────────────────────
+function saveFirebaseConfig() {
+  const cfg = {
+    apiKey: document.getElementById('cfg-apiKey').value.trim(),
+    authDomain: document.getElementById('cfg-authDomain').value.trim(),
+    databaseURL: document.getElementById('cfg-databaseURL').value.trim(),
+    projectId: document.getElementById('cfg-projectId').value.trim(),
+    appId: document.getElementById('cfg-appId').value.trim(),
+  };
+  if (!cfg.apiKey || !cfg.databaseURL) { showToast('API Key and Database URL are required!'); return; }
+  localStorage.setItem('sgolf_firebase_cfg', JSON.stringify(cfg));
+  initFirebase(cfg);
+}
+window.saveFirebaseConfig = saveFirebaseConfig;
+
+function useDemoMode() {
+  demoMode = true;
+  document.getElementById('firebaseOverlay').style.display = 'none';
+  loadFromLocal();
+  showToast('Demo mode — data stays on this device only');
+}
+window.useDemoMode = useDemoMode;
+
+function initFirebase(cfg) {
+  if (!window._firebaseReady) { window.addEventListener('firebaseReady', () => initFirebase(cfg), { once: true }); return; }
+  try {
+    const { initializeApp, getDatabase } = window._firebase;
+    const app = initializeApp(cfg);
+    db = getDatabase(app);
+    window._db = db;
+    const { ref, set, get, push, onValue, update, remove } = window._firebase;
+    window._fbRef = ref; window._fbSet = set; window._fbGet = get;
+    window._fbPush = push; window._fbOnValue = onValue; window._fbUpdate = update; window._fbRemove = remove;
+    document.getElementById('firebaseOverlay').style.display = 'none';
+    showToast('Connected to Firebase! ✓');
+    setupRealtimeListeners();
+  } catch(e) {
+    showToast('Firebase error: ' + e.message);
+    console.error(e);
+  }
+}
+
+function setupRealtimeListeners() {
+  const { ref, onValue } = window._firebase;
+  onValue(ref(db, 'roster'), snap => {
+    roster = snap.val() ? Object.entries(snap.val()).map(([id, v]) => ({id, ...v})) : [];
+    renderRoster(); renderPlayerSelectList(); updateMsgAuthorSelect(); updateTournamentPlayerSelect();
+  });
+  onValue(ref(db, 'rounds'), snap => {
+    const data = snap.val();
+    rounds = data ? Object.entries(data).map(([id, v]) => ({id, ...v})) : [];
+    rounds.sort((a, b) => b.date.localeCompare(a.date));
+    const active = rounds.find(r => !r.finished);
+    if (active) { activeRound = active; showActiveRoundCard(true); }
+    else { activeRound = null; showActiveRoundCard(false); }
+    renderLeaderboard(); renderHistory();
+  });
+  onValue(ref(db, 'tournaments'), snap => {
+    const data = snap.val();
+    tournaments = data ? Object.entries(data).map(([id, v]) => ({id, ...v})) : [];
+    tournaments.sort((a, b) => (b.startDate || '').localeCompare(a.startDate || ''));
+    renderTournaments();
+  });
+  onValue(ref(db, 'messages'), snap => {
+    const data = snap.val();
+    messages = data ? Object.entries(data).map(([id, v]) => ({id, ...v})) : [];
+    messages.sort((a, b) => b.createdAt - a.createdAt);
+    renderBoard();
+  });
+}
+
+function loadFromLocal() {
+  roster = JSON.parse(localStorage.getItem('sgolf_roster') || '[]');
+  rounds = JSON.parse(localStorage.getItem('sgolf_rounds') || '[]');
+  tournaments = JSON.parse(localStorage.getItem('sgolf_tournaments') || '[]');
+  messages = JSON.parse(localStorage.getItem('sgolf_messages') || '[]');
+  const active = rounds.find(r => !r.finished);
+  activeRound = active || null;
+  renderAll();
+}
+
+function renderAll() {
+  renderRoster(); renderPlayerSelectList(); renderLeaderboard();
+  renderHistory(); renderTournaments(); renderBoard();
+  updateMsgAuthorSelect(); updateTournamentPlayerSelect();
+  if (activeRound) showActiveRoundCard(true);
+}
+
+// ─── PERSISTENCE ──────────────────────────────────────────────────────────────
+async function saveRoster() {
+  if (demoMode) { localStorage.setItem('sgolf_roster', JSON.stringify(roster)); return; }
+  const obj = {};
+  roster.forEach((p, i) => { obj[p.id || `p${i}`] = { name: p.name, hcap: p.hcap }; });
+  await window._fbSet(window._fbRef(db, 'roster'), obj);
+}
+
+async function saveRound(round) {
+  if (demoMode) {
+    const idx = rounds.findIndex(r => r.id === round.id);
+    if (idx >= 0) rounds[idx] = round; else rounds.unshift(round);
+    localStorage.setItem('sgolf_rounds', JSON.stringify(rounds));
+    return round.id;
+  }
+  if (round.id) { await window._fbUpdate(window._fbRef(db, `rounds/${round.id}`), round); return round.id; }
+  else { const r = await window._fbPush(window._fbRef(db, 'rounds'), round); return r.key; }
+}
+
+async function saveTournamentData(t) {
+  if (demoMode) {
+    const idx = tournaments.findIndex(x => x.id === t.id);
+    if (idx >= 0) tournaments[idx] = t; else tournaments.unshift(t);
+    localStorage.setItem('sgolf_tournaments', JSON.stringify(tournaments));
+    return t.id;
+  }
+  if (t.id) { await window._fbUpdate(window._fbRef(db, `tournaments/${t.id}`), t); return t.id; }
+  else { const r = await window._fbPush(window._fbRef(db, 'tournaments'), t); return r.key; }
+}
+
+async function saveMessage(msg) {
+  if (demoMode) {
+    messages.unshift(msg);
+    localStorage.setItem('sgolf_messages', JSON.stringify(messages));
+    return;
+  }
+  await window._fbPush(window._fbRef(db, 'messages'), msg);
+}
+
+// ─── GAME MODE ────────────────────────────────────────────────────────────────
+function selectMode(mode) {
+  selectedGameMode = mode;
+  document.querySelectorAll('.mode-select-btn').forEach(btn => {
+    const isActive = btn.dataset.mode === mode;
+    btn.style.background = isActive ? 'var(--green-deep)' : 'white';
+    btn.style.borderColor = isActive ? 'var(--green-mid)' : '#e0d8cc';
+    btn.style.color = isActive ? 'var(--gold)' : 'var(--text-mid)';
+  });
+  document.getElementById('mode-description').textContent = MODE_DESCRIPTIONS[mode] || '';
+}
+window.selectMode = selectMode;
+
+// ─── TAB NAVIGATION ───────────────────────────────────────────────────────────
+function showTab(tab) {
+  document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
+  document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.remove('hidden');
+  document.getElementById('nav-' + tab).classList.add('active');
+  currentTab = tab;
+  if (tab === 'records') renderRecords();
+  if (tab === 'stats') renderStatsPlayerSelect();
+  if (tab === 'tournaments') renderTournaments();
+  if (tab === 'board') renderBoard();
+  if (tab === 'play') {
+    if (activeRound && !activeRound.finished) {
+      document.getElementById('play-start').classList.add('hidden');
+      document.getElementById('play-scoring').classList.remove('hidden');
+      renderScoringView();
+    } else {
+      document.getElementById('play-start').classList.remove('hidden');
+      document.getElementById('play-scoring').classList.add('hidden');
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('round-date').value = today;
+      renderPlayerSelectList();
+    }
+  }
+}
+window.showTab = showTab;
+
+function setLbTab(tab) {
+  lbTab = tab;
+  document.querySelectorAll('.inner-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('lbtab-' + tab).classList.add('active');
+  renderLeaderboard();
+}
+window.setLbTab = setLbTab;
+
+// ─── LEADERBOARD ──────────────────────────────────────────────────────────────
+function renderLeaderboard() {
+  const el = document.getElementById('leaderboard-content');
+  const targetRound = rounds.find(r => !r.finished) || rounds[0];
+  if (!targetRound) {
+    el.innerHTML = '<div class="empty"><div class="icon">🌿</div><p>No active round.<br>Head to Play to start one!</p></div>';
+    return;
+  }
+  const tee = COURSE.tees[targetRound.tee || 'white'];
+  const mode = targetRound.gameMode || 'stroke';
+
+  // For scramble/bestball, show team view
+  if (mode === 'scramble') {
+    const holesPlayed = Object.keys(targetRound.scores?.[0] || {}).length;
+    let teamGross = 0;
+    for (let h = 0; h < 18; h++) {
+      const s = targetRound.scores?.[0]?.[h];
+      if (s !== undefined) teamGross += parseInt(s) || 0;
+    }
+    const parPlayed = COURSE.par.slice(0, holesPlayed).reduce((a, b) => a + b, 0);
+    const diff = teamGross - parPlayed;
+    const diffStr = diff === 0 ? 'E' : diff > 0 ? `+${diff}` : `${diff}`;
+    el.innerHTML = `<div style="text-align:center;padding:16px">
+      <div style="font-size:12px;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">🔀 Scramble — Team Score</div>
+      <div style="font-size:48px;font-weight:900;font-family:'Playfair Display',serif;color:var(--green-deep)">${teamGross || '-'}</div>
+      <div style="font-size:18px;color:${diff < 0 ? 'var(--blue)' : 'var(--red)'};font-weight:700">${holesPlayed > 0 ? diffStr : ''}</div>
+      <div style="font-size:13px;color:var(--text-light);margin-top:4px">Thru ${holesPlayed === 18 ? 'F' : holesPlayed || '-'}</div>
+      <div style="font-size:13px;color:var(--text-mid);margin-top:8px">${targetRound.players.map(p => p.name).join(' · ')}</div>
+    </div>`;
+    return;
+  }
+
+  const entries = targetRound.players.map((player, pi) => {
+    const scores = targetRound.scores?.[pi] || {};
+    let gross = 0, holesPlayed = 0;
+    for (let h = 0; h < 18; h++) {
+      if (scores[h] !== undefined && scores[h] !== null && scores[h] !== '') {
+        gross += parseInt(scores[h]) || 0; holesPlayed++;
+      }
+    }
+    const courseHcap = Math.round(player.hcap * (tee.slope / 113));
+    const net = gross - courseHcap;
+    const parPlayed = COURSE.par.slice(0, holesPlayed).reduce((a, b) => a + b, 0);
+
+    if (mode === 'stableford') {
+      let points = 0;
+      for (let h = 0; h < 18; h++) {
+        if (scores[h] !== undefined && scores[h] !== '') {
+          const s = parseInt(scores[h]) || 0;
+          const netScore = s - (COURSE.si[h] <= courseHcap ? 1 : 0);
+          const diff = netScore - COURSE.par[h];
+          if (diff <= -2) points += 4;
+          else if (diff === -1) points += 3;
+          else if (diff === 0) points += 2;
+          else if (diff === 1) points += 1;
+        }
+      }
+      return { name: player.name, hcap: player.hcap, courseHcap, gross, net, holesPlayed, parPlayed, stablefordPoints: points };
+    }
+    return { name: player.name, hcap: player.hcap, courseHcap, gross, net, holesPlayed, parPlayed };
+  });
+
+  let sorted;
+  if (mode === 'stableford') {
+    sorted = [...entries].sort((a, b) => b.stablefordPoints - a.stablefordPoints);
+  } else {
+    sorted = [...entries].sort((a, b) => lbTab === 'net' ? a.net - b.net : a.gross - b.gross);
+  }
+
+  el.innerHTML = sorted.map((e, i) => {
+    const thru = e.holesPlayed === 18 ? 'F' : (e.holesPlayed === 0 ? '-' : `${e.holesPlayed}`);
+    const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+
+    if (mode === 'stableford') {
+      return `<div class="leaderboard-item">
+        <div class="lb-rank ${rankClass}">${i+1}</div>
+        <div style="flex:1"><div class="lb-name">${e.name}</div><div class="lb-hcap">HCP ${e.hcap}</div></div>
+        <div class="lb-scores">
+          <div class="lb-net" style="color:var(--blue)">${e.stablefordPoints} pts</div>
+          <div class="lb-thru">Thru ${thru}</div>
+        </div>
+      </div>`;
+    }
+
+    const score = lbTab === 'net' ? e.net : e.gross;
+    const diff = score - (lbTab === 'net' ? (e.parPlayed - e.courseHcap) : e.parPlayed);
+    const diffStr = diff === 0 ? 'E' : (diff > 0 ? `+${diff}` : `${diff}`);
+    const netClass = diff < 0 ? 'under' : diff > 0 ? 'over' : '';
+    return `<div class="leaderboard-item">
+      <div class="lb-rank ${rankClass}">${i+1}</div>
+      <div style="flex:1"><div class="lb-name">${e.name}</div><div class="lb-hcap">HCP ${e.hcap} · Course HCP ${e.courseHcap}</div></div>
+      <div class="lb-scores">
+        <div class="lb-net ${netClass}">${score > 0 ? score : '-'}</div>
+        <div class="lb-gross">${lbTab === 'net' ? `Gross ${e.gross || '-'}` : `Net ${e.net || '-'}`}</div>
+        <div class="lb-thru">Thru ${thru}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function showActiveRoundCard(show) {
+  const card = document.getElementById('active-round-card');
+  card.style.display = show ? 'block' : 'none';
+  if (show && activeRound) {
+    document.getElementById('active-round-title').textContent = `📅 ${activeRound.date} · ${activeRound.players.map(p => p.name).join(', ')}`;
+  }
+}
+
+function continueRound() { showTab('play'); }
+window.continueRound = continueRound;
+
+// ─── PLAYER MANAGEMENT ────────────────────────────────────────────────────────
+function addPlayer() {
+  const name = document.getElementById('new-player-name').value.trim();
+  const hcap = parseFloat(document.getElementById('new-player-hcap').value);
+  if (!name) { showToast('Enter a player name'); return; }
+  const id = 'p_' + Date.now();
+  const player = { id, name, hcap: isNaN(hcap) ? 0 : hcap, rounds: 0, hcapHistory: [] };
+  roster.push(player);
+  saveRoster();
+  document.getElementById('new-player-name').value = '';
+  document.getElementById('new-player-hcap').value = '';
+  showToast(`${name} added to roster!`);
+}
+window.addPlayer = addPlayer;
+
+function removePlayer(id) { roster = roster.filter(p => p.id !== id); saveRoster(); }
+window.removePlayer = removePlayer;
+
+function renderRoster() {
+  const el = document.getElementById('roster-list');
+  if (!el) return;
+  if (!roster.length) { el.innerHTML = '<div class="empty"><div class="icon">👤</div><p>No players yet.</p></div>'; return; }
+  el.innerHTML = roster.map(p => `
+    <div class="player-chip">
+      <div>
+        <div class="player-chip-name">${p.name}</div>
+        <div class="player-chip-hcap">HCP ${p.hcap} · ${p.rounds || 0} rounds</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input type="number" value="${p.hcap}" min="0" max="54" step="0.1"
+          style="width:60px;padding:4px 8px;border:1.5px solid #e0d8cc;border-radius:6px;font-size:13px;font-family:'DM Sans',sans-serif"
+          onchange="updateHcap('${p.id}', this.value)">
+        <button class="remove-btn" onclick="removePlayer('${p.id}')">×</button>
+      </div>
+    </div>`).join('');
+}
+
+function updateHcap(id, val) {
+  const p = roster.find(r => r.id === id);
+  if (p) { p.hcap = parseFloat(val) || 0; saveRoster(); }
+}
+window.updateHcap = updateHcap;
+
+// ─── ROUND SETUP ──────────────────────────────────────────────────────────────
+function renderPlayerSelectList() {
+  const el = document.getElementById('player-select-list');
+  if (!el) return;
+  if (!roster.length) { el.innerHTML = '<p style="font-size:13px;color:var(--text-light);margin-bottom:8px">Add players in the Players tab first, or use quick-add below.</p>'; return; }
+  el.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px">' +
+    roster.map(p => `<button onclick="toggleRoundPlayer('${p.id}')" id="rp-${p.id}"
+      style="padding:8px 14px;border-radius:20px;border:1.5px solid #e0d8cc;background:white;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s">
+      ${p.name}</button>`).join('') + '</div>';
+}
+
+function toggleRoundPlayer(id) {
+  const p = roster.find(r => r.id === id);
+  if (!p) return;
+  const btn = document.getElementById('rp-' + id);
+  const idx = roundPlayers.findIndex(r => r.id === id);
+  if (idx >= 0) {
+    roundPlayers.splice(idx, 1);
+    btn.style.background = 'white'; btn.style.borderColor = '#e0d8cc'; btn.style.color = 'var(--text-dark)';
+  } else {
+    roundPlayers.push({ id: p.id, name: p.name, hcap: p.hcap });
+    btn.style.background = 'var(--green-deep)'; btn.style.borderColor = 'var(--green-deep)'; btn.style.color = 'var(--gold)';
+  }
+  renderRoundPlayerList();
+}
+window.toggleRoundPlayer = toggleRoundPlayer;
+
+function renderRoundPlayerList() {
+  const el = document.getElementById('round-player-list');
+  if (!roundPlayers.length) { el.innerHTML = ''; return; }
+  el.innerHTML = '<div style="font-size:12px;font-weight:600;color:var(--text-mid);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Playing Today:</div>' +
+    roundPlayers.map((p, i) => `<div class="player-chip" style="padding:8px 12px">
+      <div class="player-chip-name">${p.name}</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:13px;color:var(--text-mid)">HCP ${p.hcap}</span>
+        <button class="remove-btn" onclick="removeRoundPlayer(${i})">×</button>
+      </div>
+    </div>`).join('');
+}
+
+function removeRoundPlayer(i) {
+  const p = roundPlayers[i];
+  roundPlayers.splice(i, 1);
+  const btn = document.getElementById('rp-' + p.id);
+  if (btn) { btn.style.background = 'white'; btn.style.borderColor = '#e0d8cc'; btn.style.color = 'var(--text-dark)'; }
+  renderRoundPlayerList();
+}
+window.removeRoundPlayer = removeRoundPlayer;
+
+function quickAddPlayer() {
+  const name = document.getElementById('quick-player-name').value.trim();
+  const hcap = parseFloat(document.getElementById('quick-player-hcap').value) || 0;
+  if (!name) { showToast('Enter a name'); return; }
+  roundPlayers.push({ id: 'guest_' + Date.now(), name, hcap });
+  document.getElementById('quick-player-name').value = '';
+  document.getElementById('quick-player-hcap').value = '';
+  renderRoundPlayerList();
+}
+window.quickAddPlayer = quickAddPlayer;
+
+async function startRound() {
+  if (!roundPlayers.length) { showToast('Add at least one player first!'); return; }
+  if (!demoMode && !db) { showToast('Still connecting to Firebase...'); return; }
+  const date = document.getElementById('round-date').value || new Date().toISOString().split('T')[0];
+  const tee = document.getElementById('round-tee').value;
+  const round = {
+    date, tee, gameMode: selectedGameMode,
+    players: roundPlayers.map(p => ({ name: p.name, hcap: p.hcap, id: p.id || null })),
+    scores: {}, finished: false, createdAt: Date.now()
+  };
+  // For scramble, only one score track needed (hole-by-hole team score stored in index 0)
+  if (selectedGameMode === 'scramble') { round.scores[0] = {}; }
+  else { round.players.forEach((_, pi) => { round.scores[pi] = {}; }); }
+  try {
+    const id = await saveRound(round);
+    round.id = id;
+    activeRound = round;
+    if (demoMode) rounds.unshift(round);
+    currentHole = 0;
+    roundPlayers = [];
+    document.getElementById('play-start').classList.add('hidden');
+    document.getElementById('play-scoring').classList.remove('hidden');
+    renderScoringView();
+    showActiveRoundCard(true);
+    renderLeaderboard();
+  } catch(e) { showToast('Error: ' + e.message); console.error(e); }
+}
+window.startRound = startRound;
+
+// ─── SCORING ──────────────────────────────────────────────────────────────────
+function renderScoringView() {
+  if (!activeRound) return;
+  const mode = activeRound.gameMode || 'stroke';
+  document.getElementById('scoring-date').textContent = `${activeRound.date} · ${activeRound.tee?.charAt(0).toUpperCase() + activeRound.tee?.slice(1)} Tees`;
+  const badgeEl = document.getElementById('scoring-mode-badge');
+  badgeEl.textContent = { stroke: 'Stroke', scramble: 'Scramble', bestball: 'Best Ball', stableford: 'Stableford', matchplay: 'Match Play', skins: 'Skins' }[mode] || mode;
+  badgeEl.className = `mode-badge mode-${mode}`;
+  renderHoleDots(); renderHole(); renderRunningTotals();
+}
+
+function renderHoleDots() {
+  const el = document.getElementById('hole-dots');
+  el.innerHTML = COURSE.par.map((par, i) => {
+    const hasScore = activeRound.players.some((_,pi) => {
+      const key = activeRound.gameMode === 'scramble' ? 0 : pi;
+      return activeRound.scores?.[key]?.[i] !== undefined;
+    });
+    const isActive = i === currentHole;
+    return `<div onclick="goToHole(${i})" style="width:${isActive ? '20px' : '10px'};height:10px;border-radius:5px;background:${isActive ? 'var(--gold)' : hasScore ? 'var(--green-light)' : '#ddd'};cursor:pointer;transition:all 0.2s"></div>`;
+  }).join('');
+}
+
+function renderHole() {
+  const h = currentHole;
+  const par = COURSE.par[h];
+  const si = COURSE.si[h];
+  const mode = activeRound.gameMode || 'stroke';
+  document.getElementById('current-hole-num').textContent = `Hole ${h + 1}`;
+  document.getElementById('current-hole-info').textContent = `Par ${par} · SI ${si}`;
+  document.getElementById('prev-btn').disabled = h === 0;
+  document.getElementById('next-btn').disabled = h === 17;
+
+  const el = document.getElementById('hole-score-inputs');
+  const tee = COURSE.tees[activeRound.tee || 'white'];
+
+  if (mode === 'scramble') {
+    const existing = activeRound.scores?.[0]?.[h] ?? '';
+    el.innerHTML = `<div class="card" style="padding:16px">
+      <div style="font-weight:700;font-size:15px;margin-bottom:4px;color:var(--green-mid)">🔀 Scramble — Team Score</div>
+      <div style="font-size:12px;color:var(--text-light);margin-bottom:12px">${activeRound.players.map(p=>p.name).join(' · ')}</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:16px">
+        <button onclick="adjustScore(0,${h},-1)" style="width:44px;height:44px;border-radius:50%;border:1.5px solid #ddd;background:white;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
+        <input type="number" id="score-0-${h}" class="score-input" value="${existing}" min="1" max="15" inputmode="numeric"
+          onchange="scoreChanged(0,${h})" oninput="scoreChanged(0,${h})"
+          style="width:64px;height:64px;font-size:28px;border-radius:14px;border:2px solid #ddd">
+        <button onclick="adjustScore(0,${h},1)" style="width:44px;height:44px;border-radius:50%;border:1.5px solid #ddd;background:white;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center">+</button>
+      </div>
+    </div>`;
+    const val = activeRound.scores?.[0]?.[h];
+    if (val !== undefined && val !== '') colorScore(0, h, parseInt(val));
+    return;
+  }
+
+  el.innerHTML = activeRound.players.map((player, pi) => {
+    const courseHcap = Math.round(player.hcap * (tee.slope / 113));
+    const strokesReceived = si <= (courseHcap % 18) ? Math.floor(courseHcap / 18) + 1 : Math.floor(courseHcap / 18);
+    const existing = activeRound.scores?.[pi]?.[h] ?? '';
+
+    let extraInfo = '';
+    if (mode === 'stableford') {
+      const netPar = par - strokesReceived;
+      extraInfo = `<div style="font-size:11px;color:var(--blue);margin-top:2px">Net par on this hole: ${netPar}</div>`;
+    }
+
+    return `<div class="card" style="padding:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div>
+          <div style="font-weight:700;font-size:16px">${player.name}</div>
+          <div style="font-size:12px;color:var(--text-light)">HCP ${player.hcap} · Gets ${strokesReceived} stroke${strokesReceived !== 1 ? 's' : ''} here</div>
+          ${extraInfo}
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <button onclick="adjustScore(${pi},${h},-1)" style="width:36px;height:36px;border-radius:50%;border:1.5px solid #ddd;background:white;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
+          <input type="number" id="score-${pi}-${h}" class="score-input" value="${existing}" min="1" max="15" inputmode="numeric"
+            onchange="scoreChanged(${pi},${h})" oninput="scoreChanged(${pi},${h})"
+            style="width:52px;height:52px;font-size:24px;border-radius:12px;border:2px solid #ddd">
+          <button onclick="adjustScore(${pi},${h},1)" style="width:36px;height:36px;border-radius:50%;border:1.5px solid #ddd;background:white;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center">+</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  activeRound.players.forEach((_, pi) => {
+    const val = activeRound.scores?.[pi]?.[h];
+    if (val !== undefined && val !== '') colorScore(pi, h, parseInt(val));
+  });
+}
+
+function adjustScore(pi, h, delta) {
+  const input = document.getElementById(`score-${pi}-${h}`);
+  const current = parseInt(input.value) || 0;
+  input.value = Math.max(1, current + delta);
+  scoreChanged(pi, h);
+}
+window.adjustScore = adjustScore;
+
+function scoreChanged(pi, h) {
+  const input = document.getElementById(`score-${pi}-${h}`);
+  const val = parseInt(input.value);
+  if (!activeRound.scores) activeRound.scores = {};
+  if (!activeRound.scores[pi]) activeRound.scores[pi] = {};
+  if (!isNaN(val) && val > 0) { activeRound.scores[pi][h] = val; colorScore(pi, h, val); }
+  renderRunningTotals(); renderHoleDots();
+  saveRound(activeRound); renderLeaderboard();
+}
+window.scoreChanged = scoreChanged;
+
+function colorScore(pi, h, val) {
+  const input = document.getElementById(`score-${pi}-${h}`);
+  if (!input) return;
+  const par = COURSE.par[h];
+  const diff = val - par;
+  input.className = 'score-input ' + (diff <= -2 ? 'eagle' : diff === -1 ? 'birdie' : diff === 0 ? 'par-score' : diff === 1 ? 'bogey' : diff === 2 ? 'double' : 'worse');
+}
+
+function renderRunningTotals() {
+  const el = document.getElementById('running-totals');
+  if (!activeRound) return;
+  const tee = COURSE.tees[activeRound.tee || 'white'];
+  const mode = activeRound.gameMode || 'stroke';
+
+  if (mode === 'scramble') {
+    const scores = activeRound.scores?.[0] || {};
+    let gross = 0, holes = 0, parTotal = 0;
+    for (let h = 0; h < 18; h++) {
+      if (scores[h] !== undefined && scores[h] !== '') { gross += parseInt(scores[h]) || 0; parTotal += COURSE.par[h]; holes++; }
+    }
+    const diff = gross - parTotal;
+    const diffStr = diff === 0 ? 'E' : diff > 0 ? `+${diff}` : `${diff}`;
+    el.innerHTML = `<div style="text-align:center;padding:8px">
+      <div style="font-size:28px;font-weight:900;font-family:'Playfair Display',serif;color:var(--green-deep)">${gross || '-'} <span style="font-size:16px;color:${diff<0?'var(--blue)':'var(--red)'}">${holes>0?diffStr:''}</span></div>
+      <div style="font-size:12px;color:var(--text-light)">Team score thru ${holes}</div>
+    </div>`;
+    return;
+  }
+
+  if (mode === 'stableford') {
+    el.innerHTML = activeRound.players.map((player, pi) => {
+      const courseHcap = Math.round(player.hcap * (tee.slope / 113));
+      const scores = activeRound.scores?.[pi] || {};
+      let points = 0, holes = 0;
+      for (let h = 0; h < 18; h++) {
+        if (scores[h] !== undefined && scores[h] !== '') {
+          const s = parseInt(scores[h]) || 0;
+          const sr = COURSE.si[h] <= courseHcap ? 1 : 0;
+          const diff = (s - sr) - COURSE.par[h];
+          if (diff <= -2) points += 4;
+          else if (diff === -1) points += 3;
+          else if (diff === 0) points += 2;
+          else if (diff === 1) points += 1;
+          holes++;
+        }
+      }
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0ebe0">
+        <div><div style="font-weight:600">${player.name}</div><div style="font-size:12px;color:var(--text-light)">Thru ${holes}</div></div>
+        <div style="text-align:right"><div style="font-size:18px;font-weight:700;color:var(--blue)">${points} pts</div></div>
+      </div>`;
+    }).join('');
+    return;
+  }
+
+  el.innerHTML = activeRound.players.map((player, pi) => {
+    const scores = activeRound.scores?.[pi] || {};
+    let gross = 0, holes = 0, parTotal = 0;
+    for (let h = 0; h < 18; h++) {
+      if (scores[h] !== undefined && scores[h] !== '') { gross += parseInt(scores[h]) || 0; parTotal += COURSE.par[h]; holes++; }
+    }
+    const courseHcap = Math.round(player.hcap * (tee.slope / 113));
+    const net = gross - courseHcap;
+    const diffGross = gross - parTotal;
+    const diffStr = diffGross === 0 ? 'E' : diffGross > 0 ? `+${diffGross}` : `${diffGross}`;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0ebe0">
+      <div><div style="font-weight:600">${player.name}</div><div style="font-size:12px;color:var(--text-light)">Thru ${holes}</div></div>
+      <div style="text-align:right">
+        <div style="font-size:18px;font-weight:700;color:var(--green-deep)">${gross || '-'} <span style="font-size:13px;color:${diffGross<0?'var(--blue)':diffGross>0?'var(--red)':'var(--green-mid)'}">${holes>0?diffStr:''}</span></div>
+        <div style="font-size:12px;color:var(--text-mid)">Net ${net > 0 ? net : '-'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function prevHole() { if (currentHole > 0) { currentHole--; renderHole(); renderHoleDots(); } }
+function nextHole() { if (currentHole < 17) { currentHole++; renderHole(); renderHoleDots(); } }
+function goToHole(h) { currentHole = h; renderHole(); renderHoleDots(); }
+window.prevHole = prevHole; window.nextHole = nextHole; window.goToHole = goToHole;
+
+async function finishRound() {
+  if (!confirm('Mark this round as finished?')) return;
+  activeRound.finished = true;
+  await updateHandicaps(activeRound);
+  await saveRound(activeRound);
+  if (demoMode) { const r = rounds.find(r => r.id === activeRound.id); if (r) r.finished = true; }
+  activeRound = null;
+  showActiveRoundCard(false);
+  document.getElementById('play-start').classList.remove('hidden');
+  document.getElementById('play-scoring').classList.add('hidden');
+  showTab('history');
+  showToast('Round completed! Great game! ⛳');
+  renderHistory(); renderLeaderboard();
+}
+window.finishRound = finishRound;
+
+// ─── HANDICAP CALCULATION (WHS-simplified) ────────────────────────────────────
+async function updateHandicaps(round) {
+  const tee = COURSE.tees[round.tee || 'white'];
+  const mode = round.gameMode || 'stroke';
+  // Only update handicaps for stroke/stableford/bestball modes
+  if (!['stroke', 'stableford', 'bestball'].includes(mode)) return;
+
+  for (let pi = 0; pi < round.players.length; pi++) {
+    const player = round.players[pi];
+    if (!player.id || player.id.startsWith('guest')) continue;
+    const scores = round.scores?.[pi] || {};
+    let gross = 0, count = 0;
+    for (let h = 0; h < 18; h++) {
+      if (scores[h]) { gross += parseInt(scores[h]); count++; }
+    }
+    if (count < 18) continue;
+    const diff = (113 / tee.slope) * (gross - tee.rating);
+    const rp = roster.find(r => r.id === player.id);
+    if (!rp) continue;
+    if (!rp.hcapHistory) rp.hcapHistory = [];
+    rp.hcapHistory.push({ date: round.date, diff: Math.round(diff * 10) / 10, gross, roundId: round.id, excludeFromHcap: false });
+    rp.rounds = rp.hcapHistory.length;
+    recalcHandicap(rp);
+  }
+  saveRoster();
+}
+
+function recalcHandicap(rp) {
+  if (!rp.hcapHistory) return;
+  const eligible = rp.hcapHistory.filter(h => !h.excludeFromHcap);
+  const recent = eligible.slice(-20);
+  const sorted = [...recent].sort((a, b) => a.diff - b.diff);
+  const best = sorted.slice(0, Math.min(8, sorted.length));
+  if (!best.length) return;
+  const avgDiff = best.reduce((a, b) => a + b.diff, 0) / best.length;
+  rp.hcap = Math.round(avgDiff * 0.96 * 10) / 10;
+}
+
+// ─── Toggle Handicap Exclusion ────────────────────────────────────────────────
+function toggleHcapExclusion(playerName, roundId) {
+  const rp = roster.find(r => r.name === playerName);
+  if (!rp || !rp.hcapHistory) return;
+  const entry = rp.hcapHistory.find(h => h.roundId === roundId);
+  if (!entry) return;
+  entry.excludeFromHcap = !entry.excludeFromHcap;
+  recalcHandicap(rp);
+  saveRoster();
+  renderStats(playerName);
+  showToast(entry.excludeFromHcap ? 'Round excluded from handicap ✓' : 'Round included in handicap ✓');
+}
+window.toggleHcapExclusion = toggleHcapExclusion;
+
+// ─── HISTORY ──────────────────────────────────────────────────────────────────
+function renderHistory() {
+  const el = document.getElementById('history-list');
+  const finished = rounds.filter(r => r.finished);
+  if (!finished.length) { el.innerHTML = '<div class="empty"><div class="icon">📋</div><p>No completed rounds yet.</p></div>'; return; }
+  el.innerHTML = finished.map(r => {
+    const tee = COURSE.tees[r.tee || 'white'];
+    const mode = r.gameMode || 'stroke';
+    const modeBadge = `<span class="mode-badge mode-${mode}" style="font-size:10px;padding:2px 7px">${{stroke:'Stroke',scramble:'Scramble',bestball:'Best Ball',stableford:'Stableford',matchplay:'Match',skins:'Skins'}[mode]||mode}</span>`;
+    const results = r.players.map((p, pi) => {
+      const scores = r.scores?.[pi] || {};
+      let gross = 0;
+      for (let h = 0; h < 18; h++) { if (scores[h]) gross += parseInt(scores[h]); }
+      const courseHcap = Math.round(p.hcap * (tee.slope / 113));
+      return { name: p.name, gross, net: gross - courseHcap };
+    }).sort((a, b) => a.net - b.net);
+    const winner = results[0];
+    return `<div class="round-item" style="display:flex;align-items:center;gap:10px">
+      <div style="flex:1" onclick="showRoundDetail('${r.id}')">
+        <div class="round-date" style="display:flex;align-items:center;gap:6px">${r.date} · ${r.tee?.charAt(0).toUpperCase()+r.tee?.slice(1)} Tees ${modeBadge}</div>
+        <div class="round-players">${r.players.map(p => p.name).join(', ')}</div>
+        <div class="round-winner">🏆 ${winner.name} — Net ${winner.net} (Gross ${winner.gross})</div>
+      </div>
+      <button onclick="deleteRound('${r.id}')" style="background:none;border:none;font-size:20px;cursor:pointer;color:#ccc;padding:8px;flex-shrink:0">🗑️</button>
+    </div>`;
+  }).join('');
+}
+
+async function deleteRound(id) {
+  if (!confirm('Delete this round? This cannot be undone.')) return;
+  if (demoMode) { rounds = rounds.filter(r => r.id !== id); localStorage.setItem('sgolf_rounds', JSON.stringify(rounds)); }
+  else { await window._fbSet(window._fbRef(db, `rounds/${id}`), null); }
+  renderHistory(); renderLeaderboard(); showToast('Round deleted');
+}
+window.deleteRound = deleteRound;
+
+function showRoundDetail(id) {
+  const round = rounds.find(r => r.id === id);
+  if (!round) return;
+  const tee = COURSE.tees[round.tee || 'white'];
+  const results = round.players.map((p, pi) => {
+    const scores = round.scores?.[pi] || {};
+    let gross = 0, front = 0, back = 0;
+    for (let h = 0; h < 18; h++) {
+      const s = parseInt(scores[h]) || 0;
+      gross += s;
+      if (h < 9) front += s; else back += s;
+    }
+    const courseHcap = Math.round(p.hcap * (tee.slope / 113));
+    return { name: p.name, hcap: p.hcap, courseHcap, gross, net: gross - courseHcap, front, back, scores };
+  });
+
+  const existing = document.getElementById('round-modal');
+  if (existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'round-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(26,58,42,0.95);z-index:150;overflow-y:auto;padding:16px 16px 40px';
+  modal.innerHTML = `
+    <div style="background:white;border-radius:16px;padding:20px;max-width:600px;margin:0 auto">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div>
+          <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--green-deep)">${round.date}</div>
+          <div style="font-size:13px;color:var(--text-light)">${round.tee?.charAt(0).toUpperCase()+round.tee?.slice(1)} Tees</div>
+        </div>
+        <button onclick="closeModal()" style="background:none;border:none;font-size:32px;cursor:pointer;color:var(--text-mid);padding:4px 10px;line-height:1">×</button>
+      </div>
+      <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:340px">
+        <tr>
+          <th style="background:var(--green-deep);color:var(--gold);padding:8px 4px;text-align:left">Player</th>
+          ${COURSE.par.map((_,i) => `<th style="background:var(--green-deep);color:var(--gold);padding:8px 2px;text-align:center">${i+1}</th>`).join('')}
+          <th style="background:var(--green-deep);color:var(--gold);padding:8px 4px">Out</th>
+          <th style="background:var(--green-deep);color:var(--gold);padding:8px 4px">In</th>
+          <th style="background:var(--green-deep);color:var(--gold);padding:8px 4px">Gross</th>
+          <th style="background:var(--green-deep);color:var(--gold);padding:8px 4px">HCP</th>
+          <th style="background:var(--green-deep);color:var(--gold);padding:8px 4px">Net</th>
+        </tr>
+        <tr style="background:#f9f5ec">
+          <td style="padding:6px 4px;font-size:11px;color:var(--text-light)">Par</td>
+          ${COURSE.par.map(p => `<td style="text-align:center;padding:6px 2px;font-size:11px;color:var(--text-mid)">${p}</td>`).join('')}
+          <td style="text-align:center;padding:6px 4px;font-size:11px;color:var(--text-mid)">36</td>
+          <td style="text-align:center;padding:6px 4px;font-size:11px;color:var(--text-mid)">36</td>
+          <td style="text-align:center;padding:6px 4px;font-size:11px;color:var(--text-mid)">72</td>
+          <td></td><td></td>
+        </tr>
+        ${results.map(r => `<tr>
+          <td style="padding:6px 4px;font-weight:600">${r.name}</td>
+          ${COURSE.par.map((par, h) => {
+            const s = r.scores[h];
+            const diff = s ? parseInt(s) - par : null;
+            const bg = s === undefined ? '' : diff <= -2 ? '#ffd700' : diff === -1 ? '#c8e6c9' : diff === 0 ? '#fff' : diff === 1 ? '#ffccbc' : diff === 2 ? '#ef9a9a' : '#ce93d8';
+            return `<td style="text-align:center;padding:4px 2px;background:${bg};font-size:12px;font-weight:600">${s||''}</td>`;
+          }).join('')}
+          <td style="text-align:center;padding:4px;font-weight:700">${r.front||'-'}</td>
+          <td style="text-align:center;padding:4px;font-weight:700">${r.back||'-'}</td>
+          <td style="text-align:center;padding:4px;font-weight:700">${r.gross||'-'}</td>
+          <td style="text-align:center;padding:4px;color:var(--text-mid)">${r.courseHcap}</td>
+          <td style="text-align:center;padding:4px;font-weight:700;color:var(--green-deep)">${r.net||'-'}</td>
+        </tr>`).join('')}
+      </table>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+window.showRoundDetail = showRoundDetail;
+
+function closeModal() { const m = document.getElementById('round-modal'); if (m) m.remove(); }
+window.closeModal = closeModal;
+
+// ─── TOURNAMENTS ──────────────────────────────────────────────────────────────
+function updateTournamentPlayerSelect() {
+  const el = document.getElementById('t-player-select');
+  if (!el) return;
+  el.innerHTML = roster.map(p => `
+    <button onclick="toggleTournamentPlayer('${p.id}')" id="tp-${p.id}"
+      style="padding:8px 14px;border-radius:20px;border:1.5px solid #e0d8cc;background:white;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s">
+      ${p.name}</button>`).join('');
+}
+
+function toggleTournamentPlayer(id) {
+  const btn = document.getElementById('tp-' + id);
+  if (!btn) return;
+  const isSelected = btn.style.background === 'var(--green-deep)' || btn.dataset.selected === '1';
+  if (isSelected) {
+    btn.style.background = 'white'; btn.style.borderColor = '#e0d8cc'; btn.style.color = 'var(--text-dark)';
+    btn.dataset.selected = '0';
+  } else {
+    btn.style.background = 'var(--green-deep)'; btn.style.borderColor = 'var(--green-deep)'; btn.style.color = 'var(--gold)';
+    btn.dataset.selected = '1';
+  }
+}
+window.toggleTournamentPlayer = toggleTournamentPlayer;
+
+function openCreateTournament(editId = null) {
+  editingTournamentId = editId;
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('t-name').value = '';
+  document.getElementById('t-start').value = today;
+  document.getElementById('t-end').value = today;
+  document.getElementById('t-format').value = 'stroke';
+  document.getElementById('t-scoring').value = 'net';
+  document.getElementById('t-rounds').value = '1';
+  document.getElementById('t-desc').value = '';
+  document.getElementById('tournament-modal-title').textContent = editId ? 'Edit Tournament' : 'Create Tournament';
+  document.getElementById('t-save-btn').textContent = editId ? 'Save Changes 💾' : 'Create Tournament 🏆';
+  updateTournamentPlayerSelect();
+  if (editId) {
+    const t = tournaments.find(x => x.id === editId);
+    if (t) {
+      document.getElementById('t-name').value = t.name || '';
+      document.getElementById('t-start').value = t.startDate || today;
+      document.getElementById('t-end').value = t.endDate || today;
+      document.getElementById('t-format').value = t.format || 'stroke';
+      document.getElementById('t-scoring').value = t.scoring || 'net';
+      document.getElementById('t-rounds').value = t.numRounds || 1;
+      document.getElementById('t-desc').value = t.description || '';
+      // Pre-select players
+      setTimeout(() => {
+        (t.participants || []).forEach(pid => {
+          const btn = document.getElementById('tp-' + pid);
+          if (btn) { btn.style.background = 'var(--green-deep)'; btn.style.borderColor = 'var(--green-deep)'; btn.style.color = 'var(--gold)'; btn.dataset.selected = '1'; }
+        });
+      }, 50);
+    }
+  }
+  document.getElementById('tournament-modal').classList.remove('hidden');
+}
+window.openCreateTournament = openCreateTournament;
+
+function closeTournamentModal() { document.getElementById('tournament-modal').classList.add('hidden'); editingTournamentId = null; }
+window.closeTournamentModal = closeTournamentModal;
+
+async function saveTournament() {
+  const name = document.getElementById('t-name').value.trim();
+  if (!name) { showToast('Enter a tournament name'); return; }
+  const participants = roster.filter(p => {
+    const btn = document.getElementById('tp-' + p.id);
+    return btn && btn.dataset.selected === '1';
+  }).map(p => p.id);
+  const t = {
+    name,
+    startDate: document.getElementById('t-start').value,
+    endDate: document.getElementById('t-end').value,
+    format: document.getElementById('t-format').value,
+    scoring: document.getElementById('t-scoring').value,
+    numRounds: parseInt(document.getElementById('t-rounds').value) || 1,
+    description: document.getElementById('t-desc').value,
+    participants,
+    createdAt: Date.now()
+  };
+  if (editingTournamentId) { t.id = editingTournamentId; }
+  const id = await saveTournamentData(t);
+  t.id = id;
+  if (demoMode && !editingTournamentId) tournaments.unshift(t);
+  closeTournamentModal();
+  renderTournaments();
+  showToast(editingTournamentId ? 'Tournament updated ✓' : 'Tournament created! 🏆');
+  editingTournamentId = null;
+}
+window.saveTournament = saveTournament;
+
+function renderTournaments() {
+  const el = document.getElementById('tournament-list');
+  if (!tournaments.length) { el.innerHTML = '<div class="empty"><div class="icon">🏆</div><p>No tournaments yet.<br>Create one to track a series!</p></div>'; return; }
+  el.innerHTML = tournaments.map(t => {
+    const participants = (t.participants || []).map(pid => roster.find(r => r.id === pid)?.name).filter(Boolean);
+    const formatLabels = { stroke:'Stroke Play', stableford:'Stableford', matchplay:'Match Play', skins:'Skins', bestball:'Best Ball', scramble:'Scramble' };
+    const now = new Date().toISOString().split('T')[0];
+    const status = t.endDate < now ? 'Finished' : t.startDate <= now ? 'Active' : 'Upcoming';
+    const statusColor = status === 'Finished' ? 'var(--text-light)' : status === 'Active' ? 'var(--green-mid)' : 'var(--blue)';
+    return `<div class="tournament-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div style="flex:1" onclick="showTournamentDetail('${t.id}');return false" style="cursor:pointer">
+          <div class="tournament-name">${t.name}</div>
+          <div class="tournament-meta">${t.startDate} → ${t.endDate} · <span style="color:${statusColor};font-weight:600">${status}</span></div>
+          <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
+            <span class="mode-badge mode-${t.format}">${formatLabels[t.format]||t.format}</span>
+            <span style="font-size:11px;padding:3px 10px;border-radius:20px;background:#f5f0e8;color:var(--text-mid);font-weight:600">${t.scoring === 'net' ? 'Net Scoring' : 'Gross Scoring'}</span>
+            <span style="font-size:11px;padding:3px 10px;border-radius:20px;background:#f5f0e8;color:var(--text-mid);font-weight:600">${t.numRounds} round${t.numRounds > 1 ? 's' : ''}</span>
+          </div>
+          ${participants.length ? `<div style="font-size:12px;color:var(--text-light);margin-top:6px">👥 ${participants.join(', ')}</div>` : ''}
+          ${t.description ? `<div style="font-size:12px;color:var(--text-mid);margin-top:6px;font-style:italic">${t.description}</div>` : ''}
+        </div>
+        <div style="display:flex;gap:6px;margin-left:10px;flex-shrink:0">
+          <button onclick="openCreateTournament('${t.id}')" style="background:none;border:none;font-size:18px;cursor:pointer;padding:4px">✏️</button>
+          <button onclick="deleteTournament('${t.id}')" style="background:none;border:none;font-size:18px;cursor:pointer;padding:4px">🗑️</button>
+        </div>
+      </div>
+      <button onclick="showTournamentDetail('${t.id}')" class="btn btn-outline" style="margin-top:12px;font-size:13px">View Leaderboard →</button>
+    </div>`;
+  }).join('');
+}
+
+async function deleteTournament(id) {
+  if (!confirm('Delete this tournament?')) return;
+  if (demoMode) { tournaments = tournaments.filter(t => t.id !== id); localStorage.setItem('sgolf_tournaments', JSON.stringify(tournaments)); }
+  else { await window._fbSet(window._fbRef(db, `tournaments/${id}`), null); }
+  renderTournaments(); showToast('Tournament deleted');
+}
+window.deleteTournament = deleteTournament;
+
+function showTournamentDetail(id) {
+  const t = tournaments.find(x => x.id === id);
+  if (!t) return;
+  const participants = (t.participants || []).map(pid => roster.find(r => r.id === pid)).filter(Boolean);
+  const formatLabels = { stroke:'Stroke Play', stableford:'Stableford', matchplay:'Match Play', skins:'Skins', bestball:'Best Ball', scramble:'Scramble' };
+
+  // Find rounds that match this tournament's date range and have the participants
+  const tRounds = rounds.filter(r => {
+    if (!r.finished) return false;
+    if (r.date < t.startDate || r.date > t.endDate) return false;
+    const hasParticipant = r.players.some(p => (t.participants || []).includes(p.id));
+    return hasParticipant;
+  });
+
+  // Calculate standings
+  const standingsMap = {};
+  participants.forEach(p => { standingsMap[p.id] = { name: p.name, totalNet: 0, totalGross: 0, roundsPlayed: 0, stablefordPoints: 0 }; });
+
+  tRounds.forEach(round => {
+    const tee = COURSE.tees[round.tee || 'white'];
+    round.players.forEach((p, pi) => {
+      if (!standingsMap[p.id]) return;
+      const scores = round.scores?.[pi] || {};
+      let gross = 0, count = 0, stablefordPts = 0;
+      const courseHcap = Math.round(p.hcap * (tee.slope / 113));
+      for (let h = 0; h < 18; h++) {
+        if (scores[h]) {
+          const s = parseInt(scores[h]);
+          gross += s; count++;
+          const sr = COURSE.si[h] <= courseHcap ? 1 : 0;
+          const diff = (s - sr) - COURSE.par[h];
+          if (diff <= -2) stablefordPts += 4;
+          else if (diff === -1) stablefordPts += 3;
+          else if (diff === 0) stablefordPts += 2;
+          else if (diff === 1) stablefordPts += 1;
+        }
+      }
+      if (count < 18) return;
+      const net = gross - courseHcap;
+      standingsMap[p.id].totalNet += net;
+      standingsMap[p.id].totalGross += gross;
+      standingsMap[p.id].stablefordPoints += stablefordPts;
+      standingsMap[p.id].roundsPlayed++;
+    });
+  });
+
+  const standings = Object.values(standingsMap).filter(s => s.roundsPlayed > 0);
+  let sortedStandings;
+  if (t.format === 'stableford') {
+    sortedStandings = standings.sort((a, b) => b.stablefordPoints - a.stablefordPoints);
+  } else {
+    sortedStandings = standings.sort((a, b) => {
+      const aScore = t.scoring === 'gross' ? a.totalGross : a.totalNet;
+      const bScore = t.scoring === 'gross' ? b.totalGross : b.totalNet;
+      return aScore - bScore;
+    });
+  }
+
+  const modal = document.getElementById('tournament-detail-modal');
+  const content = document.getElementById('tournament-detail-content');
+  content.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--green-deep)">${t.name}</div>
+        <div style="font-size:13px;color:var(--text-light);margin-top:2px">${t.startDate} → ${t.endDate} · ${formatLabels[t.format]}</div>
+        ${participants.length ? `<div style="font-size:12px;color:var(--text-light);margin-top:2px">👥 ${participants.map(p=>p.name).join(', ')}</div>` : ''}
+      </div>
+      <button onclick="closeTournamentDetail()" style="background:none;border:none;font-size:32px;cursor:pointer;color:var(--text-mid);line-height:1;flex-shrink:0">×</button>
+    </div>
+
+    ${t.description ? `<div style="background:#f9f5ec;border-radius:8px;padding:10px 12px;font-size:13px;color:var(--text-mid);margin-bottom:16px;font-style:italic">${t.description}</div>` : ''}
+
+    <div style="font-weight:700;color:var(--green-deep);font-size:15px;margin-bottom:12px">🏆 Standings</div>
+    ${sortedStandings.length === 0 ? '<div class="empty"><div class="icon">⛳</div><p>No completed rounds in this tournament yet.</p></div>' :
+      sortedStandings.map((s, i) => {
+        const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+        const scoreDisplay = t.format === 'stableford'
+          ? `<div style="font-size:22px;font-weight:900;color:var(--blue)">${s.stablefordPoints} pts</div><div style="font-size:12px;color:var(--text-light)">${s.roundsPlayed} round${s.roundsPlayed>1?'s':''}</div>`
+          : `<div style="font-size:22px;font-weight:900;color:var(--green-deep)">${t.scoring === 'gross' ? s.totalGross : s.totalNet}</div><div style="font-size:12px;color:var(--text-light)">${s.roundsPlayed} round${s.roundsPlayed>1?'s':''}</div>`;
+        return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f0ebe0">
+          <div class="lb-rank ${rankClass}">${i+1}</div>
+          <div style="flex:1"><div style="font-weight:700;font-size:15px">${s.name}</div></div>
+          <div style="text-align:right">${scoreDisplay}</div>
+        </div>`;
+      }).join('')
+    }
+
+    <div style="margin-top:16px;font-weight:700;color:var(--green-deep);font-size:15px;margin-bottom:12px">📋 Rounds in this Tournament</div>
+    ${tRounds.length === 0 ? '<p style="font-size:13px;color:var(--text-light)">No rounds played yet in the tournament date range.</p>' :
+      tRounds.map(r => {
+        const tee = COURSE.tees[r.tee || 'white'];
+        const rResults = r.players.map((p, pi) => {
+          const scores = r.scores?.[pi] || {};
+          let gross = 0;
+          for (let h=0;h<18;h++) if(scores[h]) gross += parseInt(scores[h]);
+          const courseHcap = Math.round(p.hcap * (tee.slope / 113));
+          return { name: p.name, gross, net: gross - courseHcap };
+        }).sort((a,b) => a.net - b.net);
+        return `<div style="padding:10px 0;border-bottom:1px solid #f0ebe0;cursor:pointer" onclick="closeTournamentDetail();showRoundDetail('${r.id}')">
+          <div style="font-size:12px;color:var(--text-light)">${r.date}</div>
+          <div style="font-size:14px;font-weight:600;color:var(--green-deep)">${r.players.map(p=>p.name).join(', ')}</div>
+          <div style="font-size:13px;color:var(--text-mid)">🏆 ${rResults[0]?.name} — Net ${rResults[0]?.net}</div>
+        </div>`;
+      }).join('')
+    }`;
+  modal.classList.remove('hidden');
+}
+window.showTournamentDetail = showTournamentDetail;
+
+function closeTournamentDetail() { document.getElementById('tournament-detail-modal').classList.add('hidden'); }
+window.closeTournamentDetail = closeTournamentDetail;
+
+// ─── RECORDS ──────────────────────────────────────────────────────────────────
+let recordsTab = 'net';
+
+function setRecordsTab(tab) {
+  recordsTab = tab;
+  document.querySelectorAll('[id^="rectab-"]').forEach(el => el.classList.remove('active'));
+  document.getElementById('rectab-' + tab).classList.add('active');
+  renderRecords();
+}
+window.setRecordsTab = setRecordsTab;
+
+function renderRecords() {
+  const el = document.getElementById('records-content');
+  const finished = rounds.filter(r => r.finished);
+  if (!finished.length) { el.innerHTML = '<div class="empty"><div class="icon">🏅</div><p>Complete some rounds to see records!</p></div>'; return; }
+  const playerMap = {};
+  finished.forEach(round => {
+    const tee = COURSE.tees[round.tee || 'white'];
+    round.players.forEach((p, pi) => {
+      const scores = round.scores?.[pi] || {};
+      let gross = 0, count = 0;
+      for (let h = 0; h < 18; h++) {
+        if (scores[h] !== undefined && scores[h] !== '') { gross += parseInt(scores[h]) || 0; count++; }
+      }
+      if (count < 18) return;
+      const courseHcap = Math.round(p.hcap * (tee.slope / 113));
+      const net = gross - courseHcap;
+      if (!playerMap[p.name]) playerMap[p.name] = { name: p.name, rounds: [] };
+      playerMap[p.name].rounds.push({ date: round.date, gross, net, courseHcap });
+    });
+  });
+  const players = Object.values(playerMap);
+  if (!players.length) { el.innerHTML = '<div class="empty"><div class="icon">🏅</div><p>No complete rounds yet.</p></div>'; return; }
+  const sorted = players.map(p => {
+    const best = recordsTab === 'net' ? Math.min(...p.rounds.map(r => r.net)) : Math.min(...p.rounds.map(r => r.gross));
+    const avg = recordsTab === 'net' ? Math.round(p.rounds.reduce((a,r) => a+r.net, 0)/p.rounds.length) : Math.round(p.rounds.reduce((a,r) => a+r.gross, 0)/p.rounds.length);
+    const worst = recordsTab === 'net' ? Math.max(...p.rounds.map(r => r.net)) : Math.max(...p.rounds.map(r => r.gross));
+    const bestRound = p.rounds.find(r => (recordsTab === 'net' ? r.net : r.gross) === best);
+    return { name: p.name, best, avg, worst, bestDate: bestRound?.date, count: p.rounds.length };
+  }).sort((a,b) => a.best - b.best);
+  const parTotal = COURSE.par.reduce((a,b) => a+b, 0);
+  el.innerHTML = sorted.map((p, i) => {
+    const diff = p.best - parTotal;
+    const diffStr = diff === 0 ? 'E' : diff > 0 ? `+${diff}` : `${diff}`;
+    const diffColor = diff < 0 ? 'var(--blue)' : diff > 0 ? 'var(--red)' : 'var(--green-mid)';
+    const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+    return `<div style="padding:14px 0;border-bottom:1px solid #f0ebe0">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+        <div class="lb-rank ${rankClass}">${i+1}</div>
+        <div style="font-weight:700;font-size:16px;flex:1">${p.name}</div>
+        <div style="text-align:right">
+          <div style="font-size:22px;font-weight:900;font-family:'Playfair Display',serif;color:var(--green-deep)">${p.best}</div>
+          <div style="font-size:12px;color:${diffColor};font-weight:600">${diffStr}</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        <div style="background:#f9f5ec;border-radius:8px;padding:8px;text-align:center"><div style="font-size:15px;font-weight:700;color:var(--green-deep)">${p.best}</div><div style="font-size:10px;color:var(--text-light);text-transform:uppercase;letter-spacing:0.5px">Best</div></div>
+        <div style="background:#f9f5ec;border-radius:8px;padding:8px;text-align:center"><div style="font-size:15px;font-weight:700;color:var(--green-deep)">${p.avg}</div><div style="font-size:10px;color:var(--text-light);text-transform:uppercase;letter-spacing:0.5px">Avg</div></div>
+        <div style="background:#f9f5ec;border-radius:8px;padding:8px;text-align:center"><div style="font-size:15px;font-weight:700;color:var(--green-deep)">${p.count}</div><div style="font-size:10px;color:var(--text-light);text-transform:uppercase;letter-spacing:0.5px">Rounds</div></div>
+      </div>
+      <div style="font-size:11px;color:var(--text-light);margin-top:6px">Best round: ${p.bestDate||'-'}</div>
+    </div>`;
+  }).join('');
+}
+window.renderRecords = renderRecords;
+
+// ─── STATS (with Historic Rounds + Handicap Exclusion) ───────────────────────
+let selectedStatsPlayer = null;
+
+function renderStatsPlayerSelect() {
+  const el = document.getElementById('stats-player-select');
+  const names = new Set();
+  rounds.filter(r => r.finished).forEach(r => r.players.forEach(p => names.add(p.name)));
+  if (!names.size) { el.innerHTML = '<p style="font-size:13px;color:var(--text-light)">No completed rounds yet.</p>'; return; }
+  el.innerHTML = [...names].map(name => `
+    <button onclick="selectStatsPlayer('${name}')" id="sp-${name.replace(/\s/g,'_')}"
+      style="padding:8px 16px;border-radius:20px;border:1.5px solid #e0d8cc;background:white;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s">
+      ${name}</button>`).join('');
+  if (!selectedStatsPlayer || ![...names].includes(selectedStatsPlayer)) selectedStatsPlayer = [...names][0];
+  highlightStatsPlayer(selectedStatsPlayer);
+  renderStats(selectedStatsPlayer);
+}
+
+function highlightStatsPlayer(name) {
+  document.querySelectorAll('[id^="sp-"]').forEach(btn => { btn.style.background = 'white'; btn.style.borderColor = '#e0d8cc'; btn.style.color = 'var(--text-dark)'; });
+  const btn = document.getElementById('sp-' + name.replace(/\s/g,'_'));
+  if (btn) { btn.style.background = 'var(--green-deep)'; btn.style.borderColor = 'var(--green-deep)'; btn.style.color = 'var(--gold)'; }
+}
+
+function selectStatsPlayer(name) { selectedStatsPlayer = name; highlightStatsPlayer(name); renderStats(name); }
+window.selectStatsPlayer = selectStatsPlayer;
+
+function renderStats(playerName) {
+  const el = document.getElementById('stats-content');
+  const finished = rounds.filter(r => r.finished);
+  const rp = roster.find(r => r.name === playerName);
+
+  let totalRounds = 0, totalGross = 0, bestGross = Infinity, bestNet = Infinity, bestDate = '';
+  let eagles = 0, birdies = 0, pars = 0, bogeys = 0, doubles = 0, worse = 0;
+  let holeStats = Array.from({length:18}, () => ({ total: 0, count: 0 }));
+  let playerRounds = [];
+
+  finished.forEach(round => {
+    const pi = round.players.findIndex(p => p.name === playerName);
+    if (pi === -1) return;
+    const p = round.players[pi];
+    const tee = COURSE.tees[round.tee || 'white'];
+    const scores = round.scores?.[pi] || {};
+    let gross = 0, count = 0;
+    for (let h = 0; h < 18; h++) {
+      const s = parseInt(scores[h]);
+      if (!isNaN(s) && s > 0) {
+        gross += s; count++;
+        holeStats[h].total += s; holeStats[h].count++;
+        const diff = s - COURSE.par[h];
+        if (diff <= -2) eagles++;
+        else if (diff === -1) birdies++;
+        else if (diff === 0) pars++;
+        else if (diff === 1) bogeys++;
+        else if (diff === 2) doubles++;
+        else worse++;
+      }
+    }
+    const courseHcap = Math.round(p.hcap * (tee.slope / 113));
+    const net = gross - courseHcap;
+    const diff = (113 / tee.slope) * (gross - tee.rating);
+
+    // Check if excluded from handicap
+    const hcapEntry = rp?.hcapHistory?.find(h => h.roundId === round.id);
+    const isExcluded = hcapEntry?.excludeFromHcap || false;
+
+    playerRounds.push({ date: round.date, tee: round.tee, gross, net, courseHcap, count, roundId: round.id, excluded: isExcluded, diff: Math.round(diff * 10) / 10 });
+
+    if (count < 18) return;
+    totalRounds++;
+    totalGross += gross;
+    if (gross < bestGross) bestGross = gross;
+    if (net < bestNet) { bestNet = net; bestDate = round.date; }
+  });
+
+  if (!totalRounds && !playerRounds.length) {
+    el.innerHTML = '<div class="empty"><div class="icon">📊</div><p>No rounds for this player yet.</p></div>';
+    return;
+  }
+
+  const avgGross = totalRounds ? Math.round(totalGross / totalRounds) : 0;
+  const parTotal = COURSE.par.reduce((a,b) => a+b, 0);
+  const totalShots = eagles + birdies + pars + bogeys + doubles + worse;
+  const holeAvgs = holeStats.map((h, i) => ({ hole: i+1, par: COURSE.par[i], avg: h.count ? Math.round((h.total/h.count)*10)/10 : null, diff: h.count ? (h.total/h.count) - COURSE.par[i] : null })).filter(h => h.avg !== null);
+  const bestHole = holeAvgs.length ? [...holeAvgs].sort((a,b) => a.diff - b.diff)[0] : null;
+  const worstHole = holeAvgs.length ? [...holeAvgs].sort((a,b) => b.diff - a.diff)[0] : null;
+  const pct = v => totalShots ? Math.round(v / totalShots * 100) : 0;
+  const currentHcap = rp ? rp.hcap : 'N/A';
+
+  el.innerHTML = `
+    <div style="font-size:18px;font-weight:700;font-family:'Playfair Display',serif;color:var(--green-deep);margin-bottom:16px">${playerName}</div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+      <div style="background:#f9f5ec;border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:22px;font-weight:900;font-family:'Playfair Display',serif;color:var(--green-deep)">${totalRounds}</div>
+        <div style="font-size:10px;color:var(--text-light);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px">Rounds</div>
+      </div>
+      <div style="background:#f9f5ec;border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:22px;font-weight:900;font-family:'Playfair Display',serif;color:var(--green-deep)">${bestGross < Infinity ? bestGross : '-'}</div>
+        <div style="font-size:10px;color:var(--text-light);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px">Best Gross</div>
+      </div>
+      <div style="background:#f9f5ec;border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:22px;font-weight:900;font-family:'Playfair Display',serif;color:var(--green-deep)">${bestNet < Infinity ? bestNet : '-'}</div>
+        <div style="font-size:10px;color:var(--text-light);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px">Best Net</div>
+      </div>
+      <div style="background:#f9f5ec;border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:22px;font-weight:900;font-family:'Playfair Display',serif;color:var(--green-deep)">${avgGross || '-'}</div>
+        <div style="font-size:10px;color:var(--text-light);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px">Avg Gross</div>
+      </div>
+      <div style="background:#f9f5ec;border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:22px;font-weight:900;font-family:'Playfair Display',serif;color:${avgGross-parTotal>0?'var(--red)':'var(--blue)'}">${avgGross ? (avgGross-parTotal>0?'+':'')+(avgGross-parTotal) : '-'}</div>
+        <div style="font-size:10px;color:var(--text-light);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px">Avg vs Par</div>
+      </div>
+      <div style="background:#e8f5e9;border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:22px;font-weight:900;font-family:'Playfair Display',serif;color:var(--green-deep)">${currentHcap}</div>
+        <div style="font-size:10px;color:var(--text-light);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px">Current HCP</div>
+      </div>
+    </div>
+
+    ${totalShots > 0 ? `<div style="font-weight:700;color:var(--green-deep);margin-bottom:10px;font-size:14px">Scoring Breakdown</div>
+    ${[
+      { label: '🦅 Eagle or better', val: eagles, color: '#ffd700' },
+      { label: '🐦 Birdie', val: birdies, color: '#c8e6c9' },
+      { label: '— Par', val: pars, color: '#e8f5e9' },
+      { label: '📍 Bogey', val: bogeys, color: '#ffccbc' },
+      { label: '📍📍 Double', val: doubles, color: '#ef9a9a' },
+      { label: '💀 Triple+', val: worse, color: '#ce93d8' },
+    ].map(item => `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div style="font-size:13px;width:140px">${item.label}</div>
+        <div style="flex:1;background:#f0ebe0;border-radius:4px;height:18px;overflow:hidden"><div style="height:100%;width:${pct(item.val)}%;background:${item.color};border-radius:4px;transition:width 0.5s"></div></div>
+        <div style="font-size:13px;font-weight:600;width:40px;text-align:right">${item.val} <span style="font-size:11px;color:var(--text-light)">${pct(item.val)}%</span></div>
+      </div>`).join('')}` : ''}
+
+    ${holeAvgs.length ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px">
+      <div style="background:#e8f5e9;border-radius:10px;padding:12px">
+        <div style="font-size:11px;color:var(--text-light);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Best Hole (avg)</div>
+        <div style="font-weight:700;font-size:16px;color:var(--green-deep)">Hole ${bestHole?.hole||'-'}</div>
+        <div style="font-size:13px;color:var(--text-mid)">Avg ${bestHole?.avg||'-'} (Par ${bestHole?.par||'-'})</div>
+      </div>
+      <div style="background:#fce4ec;border-radius:10px;padding:12px">
+        <div style="font-size:11px;color:var(--text-light);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Toughest Hole (avg)</div>
+        <div style="font-weight:700;font-size:16px;color:var(--green-deep)">Hole ${worstHole?.hole||'-'}</div>
+        <div style="font-size:13px;color:var(--text-mid)">Avg ${worstHole?.avg||'-'} (Par ${worstHole?.par||'-'})</div>
+      </div>
+    </div>` : ''}
+
+    <!-- HISTORIC ROUNDS LIST -->
+    <div style="margin-top:24px">
+      <div style="font-weight:700;color:var(--green-deep);font-size:15px;margin-bottom:4px">📋 Round History</div>
+      <div style="font-size:12px;color:var(--text-light);margin-bottom:12px">Toggle the button to exclude a round from handicap calculation.</div>
+      ${playerRounds.length === 0 ? '<p style="font-size:13px;color:var(--text-light)">No rounds yet.</p>' :
+        playerRounds.map(r => {
+          const diffStr = r.gross - parTotal === 0 ? 'E' : r.gross - parTotal > 0 ? `+${r.gross - parTotal}` : `${r.gross - parTotal}`;
+          const canExclude = !!rp && rp.hcapHistory?.some(h => h.roundId === r.roundId);
+          return `<div class="history-round-row ${r.excluded ? 'excluded-round' : ''}" style="background:${r.excluded ? '#fff5f5' : 'white'};border-radius:8px;padding:10px 12px;margin-bottom:6px;border:1px solid ${r.excluded ? '#ffcdd2' : '#f0ebe0'}">
+            <div style="flex:1">
+              <div style="font-weight:600;font-size:13px;color:var(--green-deep)">${r.date}</div>
+              <div style="font-size:12px;color:var(--text-light)">${r.tee?.charAt(0).toUpperCase()+r.tee?.slice(1)} Tees · ${r.count < 18 ? `${r.count} holes` : '18 holes'}</div>
+            </div>
+            <div style="text-align:right;margin-right:10px">
+              <div style="font-weight:700;font-size:14px">Gross ${r.gross} <span style="font-size:12px;color:${r.gross-parTotal<0?'var(--blue)':'var(--red)'}">${diffStr}</span></div>
+              <div style="font-size:12px;color:var(--text-mid)">Net ${r.net} · Diff ${r.diff}</div>
+            </div>
+            ${canExclude ? `<button class="hcap-exclude-btn ${r.excluded ? 'excluded' : ''}" onclick="toggleHcapExclusion('${playerName}', '${r.roundId}')">
+              ${r.excluded ? '🚫 Excluded' : '✓ Counting'}
+            </button>` : ''}
+          </div>`;
+        }).join('')
+      }
+    </div>`;
+}
+window.renderStats = renderStats;
+
+// ─── MESSAGE BOARD ────────────────────────────────────────────────────────────
+const REACTIONS = ['👍','🔥','😂','🏌️','🦅','💩'];
+
+function updateMsgAuthorSelect() {
+  const el = document.getElementById('msg-author');
+  if (!el) return;
+  const current = el.value;
+  el.innerHTML = '<option value="">Select your name...</option>' +
+    roster.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+  if (current) el.value = current;
+}
+
+async function postMessage() {
+  const author = document.getElementById('msg-author').value;
+  const text = document.getElementById('msg-text').value.trim();
+  if (!author) { showToast('Select your name first!'); return; }
+  if (!text) { showToast('Write something first!'); return; }
+  const msg = { author, text, createdAt: Date.now(), reactions: {} };
+  await saveMessage(msg);
+  if (demoMode) renderBoard();
+  document.getElementById('msg-text').value = '';
+  showToast('Posted! 📢');
+}
+window.postMessage = postMessage;
+
+async function addReaction(msgId, emoji) {
+  const msg = messages.find(m => m.id === msgId);
+  if (!msg) return;
+  if (!msg.reactions) msg.reactions = {};
+  msg.reactions[emoji] = (msg.reactions[emoji] || 0) + 1;
+  if (demoMode) { localStorage.setItem('sgolf_messages', JSON.stringify(messages)); renderBoard(); return; }
+  await window._fbUpdate(window._fbRef(db, `messages/${msgId}/reactions`), msg.reactions);
+}
+window.addReaction = addReaction;
+
+async function deleteMessage(msgId) {
+  if (!confirm('Delete this message?')) return;
+  if (demoMode) { messages = messages.filter(m => m.id !== msgId); localStorage.setItem('sgolf_messages', JSON.stringify(messages)); renderBoard(); return; }
+  await window._fbSet(window._fbRef(db, `messages/${msgId}`), null);
+  showToast('Message deleted');
+}
+window.deleteMessage = deleteMessage;
+
+function renderBoard() {
+  const el = document.getElementById('board-messages');
+  if (!el) return;
+  if (!messages.length) { el.innerHTML = '<div class="empty"><div class="icon">💬</div><p>No messages yet.<br>Be the first to post!</p></div>'; return; }
+  el.innerHTML = messages.map(msg => {
+    const timeStr = formatRelativeTime(msg.createdAt);
+    const reactionHtml = REACTIONS.map(emoji => {
+      const count = msg.reactions?.[emoji] || 0;
+      return `<button class="reaction-btn ${count > 0 ? 'reacted' : ''}" onclick="addReaction('${msg.id}','${emoji}')">${emoji}${count > 0 ? ` ${count}` : ''}</button>`;
+    }).join('');
+    return `<div class="message-item">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div><span class="message-author">${msg.author}</span><span class="message-time">${timeStr}</span></div>
+        <button onclick="deleteMessage('${msg.id}')" style="background:none;border:none;color:#ccc;font-size:16px;cursor:pointer;padding:0 4px;line-height:1">×</button>
+      </div>
+      <div class="message-text">${escapeHtml(msg.text)}</div>
+      <div class="message-reactions">${reactionHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+function formatRelativeTime(ts) {
+  const diff = Date.now() - ts;
+  const mins = Math.floor(diff / 60000);
+  const hrs = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  if (hrs < 24) return `${hrs}h ago`;
+  if (days < 7) return `${days}d ago`;
+  return new Date(ts).toLocaleDateString('en-CA');
+}
+
+function escapeHtml(text) {
+  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;').replace(/\n/g,'<br>');
+}
+
+// ─── IMPORT ROUND ─────────────────────────────────────────────────────────────
+let importPlayers = [];
+
+function openImport() {
+  importPlayers = [];
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('import-date').value = today;
+  document.getElementById('import-modal').classList.remove('hidden');
+  document.getElementById('import-player-list').innerHTML = '';
+  document.getElementById('import-score-grid').style.display = 'none';
+  document.getElementById('scan-status').textContent = '';
+  roster.forEach(p => { importPlayers.push({ name: p.name, hcap: p.hcap }); });
+  renderImportPlayerList();
+}
+window.openImport = openImport;
+
+function closeImport() { document.getElementById('import-modal').classList.add('hidden'); }
+window.closeImport = closeImport;
+
+function addImportPlayer() {
+  const name = document.getElementById('import-player-name').value.trim();
+  const hcap = parseFloat(document.getElementById('import-player-hcap').value) || 0;
+  if (!name) { showToast('Enter a player name'); return; }
+  importPlayers.push({ name, hcap });
+  document.getElementById('import-player-name').value = '';
+  document.getElementById('import-player-hcap').value = '';
+  renderImportPlayerList();
+}
+window.addImportPlayer = addImportPlayer;
+
+function removeImportPlayer(i) { importPlayers.splice(i, 1); renderImportPlayerList(); }
+window.removeImportPlayer = removeImportPlayer;
+
+function renderImportPlayerList() {
+  const el = document.getElementById('import-player-list');
+  if (!importPlayers.length) { el.innerHTML = ''; renderImportGrid(); return; }
+  el.innerHTML = importPlayers.map((p, i) => `
+    <div class="player-chip" style="padding:8px 12px;margin-bottom:6px">
+      <div style="font-weight:600">${p.name} <span style="font-size:12px;color:var(--text-light)">HCP ${p.hcap}</span></div>
+      <button class="remove-btn" onclick="removeImportPlayer(${i})">×</button>
+    </div>`).join('');
+  renderImportGrid();
+}
+
+function renderImportGrid() {
+  const grid = document.getElementById('import-score-grid');
+  const inner = document.getElementById('import-grid-inner');
+  if (!importPlayers.length) { grid.style.display = 'none'; return; }
+  grid.style.display = 'block';
+  const PAR = [5,4,3,4,4,3,4,4,5,3,4,5,3,4,4,4,5,4];
+  inner.innerHTML = `<div style="overflow-x:auto;margin:0 -4px">
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr>
+        <th style="padding:6px 4px;text-align:left;color:var(--text-light);font-size:11px;font-weight:600">HOLE</th>
+        <th style="padding:6px 4px;text-align:center;color:var(--text-light);font-size:11px;font-weight:600">PAR</th>
+        ${importPlayers.map(p => `<th style="padding:6px 4px;text-align:center;color:var(--green-deep);font-size:12px;font-weight:700">${p.name.split(' ')[0]}</th>`).join('')}
+      </tr></thead>
+      <tbody>
+        ${PAR.map((par, h) => `<tr style="background:${h%2===0?'#fafaf8':'white'}">
+          <td style="padding:5px 4px;font-weight:700;color:var(--green-deep)">${h+1}</td>
+          <td style="padding:5px 4px;text-align:center;color:var(--text-mid)">${par}</td>
+          ${importPlayers.map((_,pi) => `<td style="padding:3px 2px;text-align:center">
+            <input type="number" id="ig-${pi}-${h}" min="1" max="15" inputmode="numeric"
+              style="width:44px;padding:4px 2px;border:1.5px solid #ddd;border-radius:6px;text-align:center;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif"
+              oninput="colorImportCell(${pi},${h},${par})">
+          </td>`).join('')}
+        </tr>`).join('')}
+        <tr style="background:#f0ebe0;font-weight:700">
+          <td style="padding:6px 4px;font-size:12px" colspan="2">TOTAL</td>
+          ${importPlayers.map((_,pi) => `<td id="ig-total-${pi}" style="padding:6px 4px;text-align:center;font-size:13px;color:var(--green-deep)">-</td>`).join('')}
+        </tr>
+      </tbody>
+    </table></div>`;
+  importPlayers.forEach((_, pi) => {
+    PAR.forEach((_, h) => {
+      const inp = document.getElementById(`ig-${pi}-${h}`);
+      if (inp) inp.addEventListener('input', () => updateImportTotal(pi));
+    });
+  });
+}
+
+function colorImportCell(pi, h, par) {
+  const inp = document.getElementById(`ig-${pi}-${h}`);
+  if (!inp) return;
+  const val = parseInt(inp.value);
+  if (isNaN(val)) return;
+  const diff = val - par;
+  inp.style.background = diff <= -2 ? '#ffd700' : diff === -1 ? '#c8e6c9' : diff === 0 ? '#fff' : diff === 1 ? '#ffccbc' : diff === 2 ? '#ef9a9a' : '#ce93d8';
+  updateImportTotal(pi);
+}
+window.colorImportCell = colorImportCell;
+
+function updateImportTotal(pi) {
+  let total = 0;
+  for (let h = 0; h < 18; h++) { const v = parseInt(document.getElementById(`ig-${pi}-${h}`)?.value); if (!isNaN(v)) total += v; }
+  const el = document.getElementById(`ig-total-${pi}`);
+  if (el) el.textContent = total || '-';
+}
+
+async function saveImportRound() {
+  if (!importPlayers.length) { showToast('Add at least one player'); return; }
+  const date = document.getElementById('import-date').value;
+  const tee = document.getElementById('import-tee').value;
+  if (!date) { showToast('Pick a date'); return; }
+  const scores = {};
+  importPlayers.forEach((_, pi) => {
+    scores[pi] = {};
+    for (let h = 0; h < 18; h++) { const v = parseInt(document.getElementById(`ig-${pi}-${h}`)?.value); if (!isNaN(v) && v > 0) scores[pi][h] = v; }
+  });
+  const round = { date, tee, gameMode: 'stroke', players: importPlayers.map(p => ({ name: p.name, hcap: p.hcap, id: null })), scores, finished: true, createdAt: Date.now() };
+  const id = await saveRound(round);
+  round.id = id;
+  if (demoMode) rounds.unshift(round);
+  closeImport();
+  showTab('history');
+  renderHistory(); renderLeaderboard();
+  showToast('Round imported! ✓');
+}
+window.saveImportRound = saveImportRound;
+
+// ─── SCORECARD SCANNER ────────────────────────────────────────────────────────
+async function scanScorecard(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const status = document.getElementById('scan-status');
+  status.textContent = '📷 Reading image...';
+  const base64 = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result.split(',')[1]); r.onerror = rej; r.readAsDataURL(file); });
+  status.textContent = '🤖 AI is reading your scorecard...';
+  const playerNames = importPlayers.map(p => p.name).join(', ') || 'the players';
+  const prompt = `This is a golf scorecard from Stanhope Golf & Country Club in PEI, Canada. The course has 18 holes with these pars: Hole 1-9: 5,4,3,4,4,3,4,4,5 and Hole 10-18: 3,4,5,3,4,4,4,5,4.
+Please extract the hole-by-hole scores for each player. The players are: ${playerNames}.
+Return ONLY a JSON object in this exact format, no other text:
+{"players":[{"name":"Player Name","scores":[h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,h13,h14,h15,h16,h17,h18]}]}
+If you cannot read a score clearly, use null for that hole. If you can see a date on the card, include it as "date":"YYYY-MM-DD" at the top level.`;
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: [{ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: file.type, data: base64 } }, { type: 'text', text: prompt }] }] })
+    });
+    const data = await response.json();
+    const text = data.content?.map(c => c.text||'').join('').replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(text);
+    if (parsed.date) document.getElementById('import-date').value = parsed.date;
+    parsed.players?.forEach(pp => {
+      const pi = importPlayers.findIndex(p => p.name.toLowerCase().includes(pp.name.toLowerCase()) || pp.name.toLowerCase().includes(p.name.toLowerCase()));
+      if (pi === -1) return;
+      pp.scores?.forEach((s, h) => { const inp = document.getElementById(`ig-${pi}-${h}`); if (inp && s !== null) { inp.value = s; colorImportCell(pi, h, [5,4,3,4,4,3,4,4,5,3,4,5,3,4,4,4,5,4][h]); } });
+      updateImportTotal(pi);
+    });
+    const filled = parsed.players?.length || 0;
+    status.textContent = `✅ Scanned ${filled} player${filled !== 1 ? 's' : ''}! Check scores and save.`;
+    status.style.color = '#c8e6c9';
+  } catch(e) {
+    status.textContent = '❌ Could not read scorecard. Please enter scores manually.';
+    status.style.color = '#ef9a9a';
+    console.error(e);
+  }
+  event.target.value = '';
+}
+window.scanScorecard = scanScorecard;
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ─── TEST DATA ────────────────────────────────────────────────────────────────
+function loadTestData() {
+  if (!confirm('Load test data? This will replace any existing local data.')) return;
+  const PAR = [5,4,3,4,4,3,4,4,5, 3,4,5,3,4,4,4,5,4];
+  const testPlayers = [
+    { id: 'p_justin',  name: 'Justin',  hcap: 14.2, rounds: 0, hcapHistory: [] },
+    { id: 'p_alex',    name: 'Alex',    hcap: 8.6,  rounds: 0, hcapHistory: [] },
+    { id: 'p_derryl',  name: 'Derryl',  hcap: 18.0, rounds: 0, hcapHistory: [] },
+    { id: 'p_jackson', name: 'Jackson', hcap: 22.4, rounds: 0, hcapHistory: [] },
+  ];
+  function genScore(hcap) {
+    return PAR.map(par => {
+      const r = Math.random();
+      if (r < 0.03) return par - 2; if (r < 0.12) return par - 1;
+      if (r < 0.35) return par; if (r < 0.60) return par + 1;
+      if (r < 0.80) return par + 2; return par + 3;
+    });
+  }
+  const dates = ['2025-05-18','2025-06-01','2025-06-15','2025-06-29','2025-07-12','2025-07-26','2025-08-09','2025-08-23','2025-09-06','2025-09-20'];
+  const tees = ['white','white','white','blue','white','green','white','white','blue','white'];
+  const gameModes = ['stroke','stroke','bestball','stroke','stableford','stroke','scramble','stroke','stroke','stroke'];
+  const testRounds = dates.map((date, ri) => {
+    const tee = tees[ri];
+    const mode = gameModes[ri];
+    const players = testPlayers.map(p => ({ name: p.name, hcap: p.hcap, id: p.id }));
+    const scores = {};
+    if (mode === 'scramble') {
+      scores[0] = {};
+      genScore(14).forEach((s, h) => { scores[0][h] = s; });
+    } else {
+      players.forEach((p, pi) => { const holeScores = genScore(testPlayers[pi].hcap); scores[pi] = {}; holeScores.forEach((s, h) => { scores[pi][h] = s; }); });
+    }
+    return { id: 'test_round_' + ri, date, tee, gameMode: mode, players, scores, finished: true, createdAt: Date.now() - (dates.length - ri) * 7 * 24 * 3600 * 1000 };
+  });
+  const testTournament = {
+    id: 'test_tournament_1', name: 'Stanhope Summer Cup 2025',
+    startDate: '2025-05-01', endDate: '2025-09-30',
+    format: 'stroke', scoring: 'net', numRounds: 5,
+    description: 'Season-long competition. Best 5 net scores count.',
+    participants: testPlayers.map(p => p.id),
+    createdAt: Date.now()
+  };
+  const testMessages = [
+    { id: 'msg1', author: 'Justin', text: 'Great round today boys! 🏌️', createdAt: Date.now() - 3600000, reactions: { '👍': 2, '🔥': 1 } },
+    { id: 'msg2', author: 'Alex', text: 'Birdie on 14 felt amazing. Course is in great shape right now.', createdAt: Date.now() - 7200000, reactions: { '🦅': 1 } },
+  ];
+  roster = testPlayers;
+  rounds = testRounds;
+  tournaments = [testTournament];
+  messages = testMessages;
+  localStorage.setItem('sgolf_roster', JSON.stringify(roster));
+  localStorage.setItem('sgolf_rounds', JSON.stringify(rounds));
+  localStorage.setItem('sgolf_tournaments', JSON.stringify(tournaments));
+  localStorage.setItem('sgolf_messages', JSON.stringify(messages));
+  renderAll();
+  showToast('Test data loaded! ✓');
+}
+window.loadTestData = loadTestData;
+
+function clearAllData() {
+  if (!confirm('Delete ALL data? This cannot be undone.')) return;
+  roster = []; rounds = []; tournaments = []; messages = []; activeRound = null;
+  ['sgolf_roster','sgolf_rounds','sgolf_tournaments','sgolf_messages'].forEach(k => localStorage.removeItem(k));
+  if (!demoMode && db) {
+    ['roster','rounds','tournaments','messages'].forEach(path => window._fbSet(window._fbRef(db, path), null));
+  }
+  renderAll(); showActiveRoundCard(false);
+  document.getElementById('play-start').classList.remove('hidden');
+  document.getElementById('play-scoring').classList.add('hidden');
+  showToast('All data cleared ✓');
+}
+window.clearAllData = clearAllData;
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  const cfg = {
+    apiKey: "AIzaSyAtWG5cPVH1h4UwTqEsYIC9k2jaXuEgtCE",
+    authDomain: "stanhope-golf.firebaseapp.com",
+    databaseURL: "https://stanhope-golf-default-rtdb.firebaseio.com",
+    projectId: "stanhope-golf",
+    appId: "1:984082151940:web:562982263c3081d3155351"
+  };
+  document.getElementById('firebaseOverlay').style.display = 'none';
+  initFirebase(cfg);
+});
+</script>
+</body>
+</html>
