@@ -565,12 +565,14 @@
             <div style="text-align:center">
               <div style="font-size:24px;font-weight:900;font-family:'Playfair Display',serif;color:var(--green-deep)" id="current-hole-num">1</div>
               <div style="font-size:12px;color:var(--text-light)" id="current-hole-info">Par 5 · SI 12</div>
-              <div id="gps-distance" style="font-size:13px;font-weight:700;color:var(--blue);margin-top:2px"></div>
             </div>
             <button class="btn btn-outline btn-sm" onclick="nextHole()" id="next-btn">Next →</button>
           </div>
           <div style="display:flex;gap:3px;justify-content:center;margin-bottom:10px" id="hole-dots"></div>
         </div>
+
+        <!-- HOLE MAP -->
+        <div id="hole-map-container"></div>
 
         <div id="hole-score-inputs"></div>
 
@@ -1358,6 +1360,10 @@ function renderHole() {
   document.getElementById('current-hole-info').textContent = `Par ${par} · SI ${si}`;
   document.getElementById('prev-btn').disabled = h === 0;
   document.getElementById('next-btn').disabled = h === 17;
+
+  // Render hole map
+  const mapEl = document.getElementById('hole-map-container');
+  if (mapEl) mapEl.innerHTML = renderHoleMap(h);
 
   const el = document.getElementById('hole-score-inputs');
   const tee = COURSE.tees[activeRound.tee || 'white'];
@@ -2655,6 +2661,166 @@ const HOLE_GREENS = [
 let gpsWatchId = null;
 let userLat = null, userLon = null;
 
+// ─── HOLE LAYOUT DATA ─────────────────────────────────────────────────────────
+// Each hole: tee [lat,lon], fairway waypoints, green [lat,lon]
+// Based on Stanhope Golf & Country Club, PEI routing
+const HOLE_LAYOUTS = [
+  // H1 Par 5 - long dogleg right heading northeast
+  { tee:[46.4065,-63.0648], fairway:[[46.4072,-63.0638],[46.4082,-63.0622],[46.4096,-63.0608],[46.4104,-63.0585]], green:[46.4108,-63.0571] },
+  // H2 Par 4 - straight northeast
+  { tee:[46.4112,-63.0568], fairway:[[46.4115,-63.0558],[46.4117,-63.0551]], green:[46.4118,-63.0548] },
+  // H3 Par 3 - short, slight dogleg
+  { tee:[46.4121,-63.0544], fairway:[[46.4125,-63.0552]], green:[46.4129,-63.0562] },
+  // H4 Par 4 - heading south then east
+  { tee:[46.4132,-63.0564], fairway:[[46.4137,-63.0571],[46.4139,-63.0576]], green:[46.4140,-63.0578] },
+  // H5 Par 4 - heading south
+  { tee:[46.4143,-63.0581], fairway:[[46.4148,-63.0585],[46.4150,-63.0589]], green:[46.4151,-63.0591] },
+  // H6 Par 3 - heading southwest
+  { tee:[46.4154,-63.0594], fairway:[[46.4148,-63.0600]], green:[46.4143,-63.0608] },
+  // H7 Par 4 - heading south
+  { tee:[46.4145,-63.0611], fairway:[[46.4140,-63.0616],[46.4135,-63.0620]], green:[46.4132,-63.0622] },
+  // H8 Par 4 - heading south
+  { tee:[46.4130,-63.0624], fairway:[[46.4126,-63.0629],[46.4122,-63.0633]], green:[46.4120,-63.0635] },
+  // H9 Par 5 - heading south, long
+  { tee:[46.4118,-63.0637], fairway:[[46.4115,-63.0641],[46.4112,-63.0645],[46.4110,-63.0648]], green:[46.4109,-63.0648] },
+  // H10 Par 3 - short heading south
+  { tee:[46.4107,-63.0651], fairway:[[46.4101,-63.0656]], green:[46.4097,-63.0661] },
+  // H11 Par 4 - heading north
+  { tee:[46.4095,-63.0663], fairway:[[46.4090,-63.0657],[46.4087,-63.0652]], green:[46.4086,-63.0648] },
+  // H12 Par 5 - heading north, long
+  { tee:[46.4084,-63.0647], fairway:[[46.4080,-63.0642],[46.4077,-63.0638]], green:[46.4074,-63.0635] },
+  // H13 Par 3 - short heading north
+  { tee:[46.4072,-63.0634], fairway:[[46.4067,-63.0628]], green:[46.4063,-63.0622] },
+  // H14 Par 4 - heading north
+  { tee:[46.4061,-63.0621], fairway:[[46.4056,-63.0615],[46.4053,-63.0611]], green:[46.4052,-63.0609] },
+  // H15 Par 4 - dogleg heading northeast
+  { tee:[46.4050,-63.0607], fairway:[[46.4055,-63.0601],[46.4059,-63.0596]], green:[46.4063,-63.0592] },
+  // H16 Par 4 - heading northeast
+  { tee:[46.4065,-63.0591], fairway:[[46.4069,-63.0586],[46.4072,-63.0582]], green:[46.4074,-63.0579] },
+  // H17 Par 5 - heading northeast, long
+  { tee:[46.4076,-63.0578], fairway:[[46.4080,-63.0573],[46.4083,-63.0569]], green:[46.4086,-63.0566] },
+  // H18 Par 4 - heading northeast back to clubhouse
+  { tee:[46.4088,-63.0565], fairway:[[46.4092,-63.0571],[46.4094,-63.0575]], green:[46.4097,-63.0578] },
+];
+
+// ─── HOLE MAP SVG ─────────────────────────────────────────────────────────────
+function renderHoleMap(holeIndex) {
+  const layout = HOLE_LAYOUTS[holeIndex];
+  if (!layout) return '';
+
+  const allPts = [layout.tee, ...layout.fairway, layout.green];
+  if (userLat !== null && userLon !== null) allPts.push([userLat, userLon]);
+
+  const lats = allPts.map(p => p[0]);
+  const lons = allPts.map(p => p[1]);
+  const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+  const minLon = Math.min(...lons), maxLon = Math.max(...lons);
+
+  const padLat = Math.max((maxLat - minLat) * 0.3, 0.0004);
+  const padLon = Math.max((maxLon - minLon) * 0.3, 0.0006);
+  const bMinLat = minLat - padLat, bMaxLat = maxLat + padLat;
+  const bMinLon = minLon - padLon, bMaxLon = maxLon + padLon;
+
+  const SVG_W = 280, SVG_H = 170;
+
+  const project = ([lat, lon]) => {
+    const x = ((lon - bMinLon) / (bMaxLon - bMinLon)) * SVG_W;
+    const y = SVG_H - ((lat - bMinLat) / (bMaxLat - bMinLat)) * SVG_H;
+    return [Math.round(x * 10) / 10, Math.round(y * 10) / 10];
+  };
+
+  const teeXY = project(layout.tee);
+  const greenXY = project(layout.green);
+  const fairwayXYs = layout.fairway.map(project);
+  const pathPts = [teeXY, ...fairwayXYs, greenXY];
+  const pathD = pathPts.map((p, i) => (i === 0 ? `M${p[0]},${p[1]}` : `L${p[0]},${p[1]}`)).join(' ');
+
+  const distYards = (userLat !== null && userLon !== null)
+    ? Math.round(haversineM(userLat, userLon, layout.green[0], layout.green[1]) * 1.09361)
+    : null;
+
+  let playerDotSVG = '';
+  if (userLat !== null && userLon !== null) {
+    const [px, py] = project([userLat, userLon]);
+    playerDotSVG = `
+      <circle cx="${px}" cy="${py}" r="12" fill="rgba(41,128,185,0.2)" stroke="rgba(41,128,185,0.5)" stroke-width="1.5"/>
+      <circle cx="${px}" cy="${py}" r="6" fill="#2980b9" stroke="white" stroke-width="2.5"/>
+      <circle cx="${px}" cy="${py}" r="2.5" fill="white"/>`;
+  }
+
+  const [tx, ty] = teeXY;
+  const [gx, gy] = greenXY;
+
+  // Draw distance line from player to green
+  let distLineSVG = '';
+  if (userLat !== null && userLon !== null) {
+    const [px, py] = project([userLat, userLon]);
+    distLineSVG = `<line x1="${px}" y1="${py}" x2="${gx}" y2="${gy}" stroke="rgba(41,128,185,0.5)" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+  }
+
+  return `<div style="background:#1a3a2a;border-radius:12px;padding:12px;margin-bottom:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div style="font-size:11px;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:1px">⛳ Hole ${holeIndex+1} Map</div>
+      ${distYards !== null
+        ? `<div style="font-size:14px;font-weight:800;color:#74b9ff">📍 ${distYards} yds to pin</div>`
+        : `<div style="font-size:11px;color:rgba(245,240,232,0.4)">Enable location for distance</div>`}
+    </div>
+    <svg viewBox="0 0 ${SVG_W} ${SVG_H}" style="width:100%;height:auto;border-radius:8px;display:block">
+      <!-- Background rough -->
+      <rect width="${SVG_W}" height="${SVG_H}" fill="#2d5a3d" rx="8"/>
+      <!-- Rough texture dots -->
+      ${Array.from({length:30}, (_,i) => {
+        const rx = (i * 97) % SVG_W, ry = (i * 63) % SVG_H;
+        return `<circle cx="${rx}" cy="${ry}" r="1.5" fill="rgba(255,255,255,0.04)"/>`;
+      }).join('')}
+
+      <!-- Fairway (wide stroke) -->
+      <path d="${pathD}" fill="none" stroke="#4a9e5c" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- Fairway highlight -->
+      <path d="${pathD}" fill="none" stroke="#5db870" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- Fairway centre -->
+      <path d="${pathD}" fill="none" stroke="#70cc82" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+
+      <!-- Distance dashed line -->
+      ${distLineSVG}
+
+      <!-- Green -->
+      <circle cx="${gx}" cy="${gy}" r="13" fill="#88d850" stroke="#5aad6c" stroke-width="2.5"/>
+      <circle cx="${gx}" cy="${gy}" r="8" fill="#a4e870" opacity="0.5"/>
+      <!-- Flag pole -->
+      <line x1="${gx}" y1="${gy-2}" x2="${gx}" y2="${gy-19}" stroke="white" stroke-width="1.8"/>
+      <!-- Flag -->
+      <polygon points="${gx},${gy-19} ${gx+9},${gy-14} ${gx},${gy-9}" fill="#e74c3c"/>
+
+      <!-- Tee box -->
+      <rect x="${tx-8}" y="${ty-5}" width="16" height="10" rx="2.5" fill="#c9a84c" stroke="#8a6020" stroke-width="1.5"/>
+      <text x="${tx}" y="${ty+2}" text-anchor="middle" font-size="7.5" fill="#1a1a1a" font-weight="bold" font-family="sans-serif">TEE</text>
+
+      <!-- Hole number badge -->
+      <rect x="4" y="4" width="24" height="16" rx="4" fill="rgba(0,0,0,0.4)"/>
+      <text x="16" y="15" text-anchor="middle" font-size="9" fill="${'#c9a84c'}" font-weight="bold" font-family="sans-serif">${holeIndex+1}</text>
+
+      <!-- Par badge -->
+      <rect x="${SVG_W-34}" y="4" width="30" height="16" rx="4" fill="rgba(0,0,0,0.4)"/>
+      <text x="${SVG_W-19}" y="15" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.8)" font-weight="bold" font-family="sans-serif">P${COURSE.par[holeIndex]}</text>
+
+      <!-- Player GPS dot -->
+      ${playerDotSVG}
+    </svg>
+    <div style="display:flex;justify-content:space-around;margin-top:8px">
+      <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:rgba(245,240,232,0.6)">
+        <div style="width:10px;height:6px;background:#c9a84c;border-radius:2px"></div> Tee
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:rgba(245,240,232,0.6)">
+        <div style="width:10px;height:10px;background:#88d850;border-radius:50%"></div> Green
+      </div>
+      ${userLat !== null ? `<div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#74b9ff">
+        <div style="width:10px;height:10px;background:#2980b9;border-radius:50%;border:2px solid white"></div> You
+      </div>` : ''}
+    </div>
+  </div>`;
+}
+
 function haversineM(lat1, lon1, lat2, lon2) {
   const R = 6371000;
   const dLat = (lat2-lat1)*Math.PI/180;
@@ -2678,12 +2844,15 @@ function stopGPS() {
 
 function updateGPSDisplay() {
   const el = document.getElementById('gps-distance');
-  if (!el || userLat === null) return;
+  if (userLat === null) return;
   const green = HOLE_GREENS[currentHole];
   if (!green) return;
   const meters = haversineM(userLat, userLon, green[0], green[1]);
   const yards = Math.round(meters * 1.09361);
-  el.textContent = `📍 ${yards} yds to green`;
+  if (el) el.textContent = `📍 ${yards} yds to green`;
+  // Refresh hole map with updated player position
+  const mapEl = document.getElementById('hole-map-container');
+  if (mapEl) mapEl.innerHTML = renderHoleMap(currentHole);
 }
 
 // ─── OFFLINE MODE (Service Worker + cache) ───────────────────────────────────
