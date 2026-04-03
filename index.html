@@ -477,6 +477,19 @@
     <div id="tab-play" class="hidden">
 
       <div id="play-start">
+        <!-- WEATHER WIDGET -->
+        <div class="card" id="weather-card" style="padding:14px 16px;background:linear-gradient(135deg,#1a3a2a,#2d5a3d);color:white">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-size:11px;color:rgba(245,240,232,0.6);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">📍 Stanhope, PEI</div>
+              <div id="weather-main" style="font-size:15px;font-weight:600;color:var(--cream)">Loading weather...</div>
+              <div id="weather-sub" style="font-size:12px;color:rgba(245,240,232,0.6);margin-top:2px"></div>
+            </div>
+            <div id="weather-icon" style="font-size:36px"></div>
+          </div>
+          <div id="weather-details" style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap"></div>
+        </div>
+
         <div class="card">
           <div class="card-title">Start a Round</div>
           <div class="form-group">
@@ -502,6 +515,7 @@
               <button class="mode-select-btn" data-mode="stableford" onclick="selectMode('stableford')" style="padding:10px 8px;border-radius:10px;border:2px solid #e0d8cc;background:white;color:var(--text-mid);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s">🎯 Stableford</button>
               <button class="mode-select-btn" data-mode="matchplay" onclick="selectMode('matchplay')" style="padding:10px 8px;border-radius:10px;border:2px solid #e0d8cc;background:white;color:var(--text-mid);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s">⚔️ Match Play</button>
               <button class="mode-select-btn" data-mode="skins" onclick="selectMode('skins')" style="padding:10px 8px;border-radius:10px;border:2px solid #e0d8cc;background:white;color:var(--text-mid);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s">💰 Skins</button>
+              <button class="mode-select-btn" data-mode="teams" onclick="selectMode('teams')" style="padding:10px 8px;border-radius:10px;border:2px solid #e0d8cc;background:white;color:var(--text-mid);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s">👥 Teams</button>
             </div>
             <div id="mode-description" style="margin-top:8px;font-size:12px;color:var(--text-mid);padding:8px 12px;background:#f9f5ec;border-radius:8px">Each player records their individual stroke score on every hole.</div>
           </div>
@@ -514,6 +528,18 @@
             <button class="btn btn-outline btn-sm" onclick="quickAddPlayer()">Add</button>
           </div>
           <div id="round-player-list" style="margin-top:12px"></div>
+
+          <!-- TEAM ASSIGNMENT (shown only in Teams mode) -->
+          <div id="team-assignment-panel" class="hidden" style="margin-top:12px;padding:12px;background:#f0f8ff;border-radius:10px;border:1.5px solid #b3d9f7">
+            <div style="font-size:12px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">👥 Assign Teams</div>
+            <div style="font-size:12px;color:var(--text-mid);margin-bottom:10px">Tap each player to toggle between Team A and Team B.</div>
+            <div id="team-chips"></div>
+            <div style="display:flex;gap:10px;margin-top:8px">
+              <div style="flex:1;background:#e8f5e9;border-radius:8px;padding:8px;font-size:12px;font-weight:600;color:var(--green-mid)">🟢 Team A: <span id="team-a-names">—</span></div>
+              <div style="flex:1;background:#fff3e0;border-radius:8px;padding:8px;font-size:12px;font-weight:600;color:#e65100">🟠 Team B: <span id="team-b-names">—</span></div>
+            </div>
+          </div>
+
           <button class="btn btn-gold" style="margin-top:16px" onclick="startRound()">Start Round ⛳</button>
         </div>
       </div>
@@ -539,6 +565,7 @@
             <div style="text-align:center">
               <div style="font-size:24px;font-weight:900;font-family:'Playfair Display',serif;color:var(--green-deep)" id="current-hole-num">1</div>
               <div style="font-size:12px;color:var(--text-light)" id="current-hole-info">Par 5 · SI 12</div>
+              <div id="gps-distance" style="font-size:13px;font-weight:700;color:var(--blue);margin-top:2px"></div>
             </div>
             <button class="btn btn-outline btn-sm" onclick="nextHole()" id="next-btn">Next →</button>
           </div>
@@ -688,11 +715,36 @@
             </select>
           </div>
           <textarea class="form-input" id="msg-text" rows="3" placeholder="Post a message, brag about your birdie, or call out a sandbagging handicap... 🏌️" style="resize:none"></textarea>
-          <button class="btn btn-gold" style="margin-top:8px" onclick="postMessage()">Post to Board 📢</button>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn btn-gold" style="flex:2" onclick="postMessage()">Post 📢</button>
+            <button class="btn btn-outline" style="flex:1;font-size:13px" onclick="openPollComposer()">📊 Poll</button>
+          </div>
         </div>
         <div id="board-messages">
           <div class="empty"><div class="icon">💬</div><p>No messages yet.<br>Be the first to post!</p></div>
         </div>
+      </div>
+    </div>
+
+    <!-- POLL COMPOSER MODAL -->
+    <div id="poll-modal" class="hidden" style="position:fixed;inset:0;background:rgba(26,58,42,0.97);z-index:160;overflow-y:auto;padding:16px 16px 60px">
+      <div style="background:white;border-radius:16px;padding:20px;max-width:600px;margin:0 auto">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--green-deep)">📊 Create a Poll</div>
+          <button onclick="closePollComposer()" style="background:none;border:none;font-size:32px;cursor:pointer;color:var(--text-mid);line-height:1">×</button>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Your Name</label>
+          <select class="form-input" id="poll-author"><option value="">Select...</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Question</label>
+          <input class="form-input" id="poll-question" placeholder="e.g. What day works for next round?">
+        </div>
+        <label class="form-label">Options</label>
+        <div id="poll-options-list"></div>
+        <button class="btn btn-outline btn-sm" onclick="addPollOption()" style="margin-top:8px;margin-bottom:16px">+ Add Option</button>
+        <button class="btn btn-gold" onclick="submitPoll()">Post Poll 📊</button>
       </div>
     </div>
 
@@ -749,7 +801,8 @@ const MODE_DESCRIPTIONS = {
   bestball: 'Each player plays their own ball. The best (lowest) score on the team counts per hole.',
   stableford: 'Points awarded based on score vs par. Double bogey = 0, Bogey = 1, Par = 2, Birdie = 3, Eagle = 4.',
   matchplay: 'Holes are won or lost individually. Track who wins each hole.',
-  skins: 'Each hole is worth a "skin." Tie = skin carries over. Most skins at the end wins.'
+  skins: 'Each hole is worth a "skin." Tie = skin carries over. Most skins at the end wins.',
+  teams: 'Split players into two teams. Best net score per team counts on each hole. Set up team assignments after selecting players.'
 };
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
@@ -764,6 +817,7 @@ let rounds = [];
 let tournaments = [];
 let messages = [];
 let roundPlayers = [];
+let teamAssignments = {}; // { playerIndex: 'A' | 'B' }
 let selectedGameMode = 'stroke';
 let editingTournamentId = null;
 
@@ -904,6 +958,11 @@ function selectMode(mode) {
     btn.style.color = isActive ? 'var(--gold)' : 'var(--text-mid)';
   });
   document.getElementById('mode-description').textContent = MODE_DESCRIPTIONS[mode] || '';
+  const teamPanel = document.getElementById('team-assignment-panel');
+  if (teamPanel) {
+    if (mode === 'teams') { teamPanel.classList.remove('hidden'); renderTeamChips(); }
+    else teamPanel.classList.add('hidden');
+  }
 }
 window.selectMode = selectMode;
 
@@ -919,6 +978,7 @@ function showTab(tab) {
   if (tab === 'tournaments') renderTournaments();
   if (tab === 'board') renderBoard();
   if (tab === 'play') {
+    loadWeather();
     if (activeRound && !activeRound.finished) {
       document.getElementById('play-start').classList.add('hidden');
       document.getElementById('play-scoring').classList.remove('hidden');
@@ -952,6 +1012,51 @@ function renderLeaderboard() {
   }
   const tee = COURSE.tees[targetRound.tee || 'white'];
   const mode = targetRound.gameMode || 'stroke';
+
+  // Teams mode leaderboard
+  if (mode === 'teams') {
+    const teamMap = { A: { gross: 0, net: 0, holes: 0 }, B: { gross: 0, net: 0, holes: 0 } };
+    targetRound.players.forEach((player, pi) => {
+      const team = player.team || 'A';
+      const scores = targetRound.scores?.[pi] || {};
+      const courseHcap = Math.round(player.hcap * (tee.slope / 113));
+      for (let h = 0; h < 18; h++) {
+        if (scores[h] !== undefined && scores[h] !== '') {
+          const s = parseInt(scores[h]) || 0;
+          // Best ball per team per hole
+          if (!teamMap[team].holeScores) teamMap[team].holeScores = {};
+          if (teamMap[team].holeScores[h] === undefined || s < teamMap[team].holeScores[h]) {
+            teamMap[team].holeScores[h] = s;
+          }
+        }
+      }
+    });
+    ['A','B'].forEach(t => {
+      const hs = teamMap[t].holeScores || {};
+      let gross = 0, holes = 0;
+      for (let h = 0; h < 18; h++) { if (hs[h] !== undefined) { gross += hs[h]; holes++; } }
+      teamMap[t].gross = gross; teamMap[t].holes = holes;
+    });
+    const teamAPlayers = targetRound.players.filter(p => (p.team||'A') === 'A').map(p=>p.name).join(', ');
+    const teamBPlayers = targetRound.players.filter(p => p.team === 'B').map(p=>p.name).join(', ');
+    el.innerHTML = ['A','B'].map(t => {
+      const tm = teamMap[t];
+      const parPlayed = COURSE.par.slice(0, tm.holes).reduce((a,b) => a+b, 0);
+      const diff = tm.gross - parPlayed;
+      const diffStr = diff === 0 ? 'E' : diff > 0 ? `+${diff}` : `${diff}`;
+      const color = diff < 0 ? 'var(--blue)' : diff > 0 ? 'var(--red)' : 'var(--green-mid)';
+      const names = t === 'A' ? teamAPlayers : teamBPlayers;
+      return `<div class="leaderboard-item">
+        <div class="lb-rank ${t==='A'?'gold':'silver'}">${t}</div>
+        <div style="flex:1"><div class="lb-name">Team ${t}</div><div class="lb-hcap">${names}</div></div>
+        <div class="lb-scores">
+          <div class="lb-net" style="color:${color}">${tm.gross||'-'} <span style="font-size:13px">${tm.holes>0?diffStr:''}</span></div>
+          <div class="lb-thru">Thru ${tm.holes===18?'F':tm.holes||'-'} (best ball)</div>
+        </div>
+      </div>`;
+    }).join('');
+    return;
+  }
 
   // For scramble/bestball, show team view
   if (mode === 'scramble') {
@@ -1125,7 +1230,7 @@ window.toggleRoundPlayer = toggleRoundPlayer;
 
 function renderRoundPlayerList() {
   const el = document.getElementById('round-player-list');
-  if (!roundPlayers.length) { el.innerHTML = ''; return; }
+  if (!roundPlayers.length) { el.innerHTML = ''; if (selectedGameMode === 'teams') renderTeamChips(); return; }
   el.innerHTML = '<div style="font-size:12px;font-weight:600;color:var(--text-mid);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Playing Today:</div>' +
     roundPlayers.map((p, i) => `<div class="player-chip" style="padding:8px 12px">
       <div class="player-chip-name">${p.name}</div>
@@ -1134,6 +1239,7 @@ function renderRoundPlayerList() {
         <button class="remove-btn" onclick="removeRoundPlayer(${i})">×</button>
       </div>
     </div>`).join('');
+  if (selectedGameMode === 'teams') renderTeamChips();
 }
 
 function removeRoundPlayer(i) {
@@ -1144,6 +1250,35 @@ function removeRoundPlayer(i) {
   renderRoundPlayerList();
 }
 window.removeRoundPlayer = removeRoundPlayer;
+
+function renderTeamChips() {
+  const el = document.getElementById('team-chips');
+  const aEl = document.getElementById('team-a-names');
+  const bEl = document.getElementById('team-b-names');
+  if (!el) return;
+  if (!roundPlayers.length) { el.innerHTML = '<p style="font-size:12px;color:var(--text-light)">Add players first.</p>'; return; }
+  el.innerHTML = roundPlayers.map((p, i) => {
+    const team = teamAssignments[i] || 'A';
+    const isA = team === 'A';
+    return `<button onclick="toggleTeam(${i})"
+      style="padding:7px 14px;border-radius:20px;margin:0 6px 6px 0;border:2px solid ${isA?'var(--green-mid)':'#e65100'};
+      background:${isA?'#e8f5e9':'#fff3e0'};color:${isA?'var(--green-mid)':'#e65100'};
+      font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s">
+      ${isA?'🟢':'🟠'} ${p.name}
+    </button>`;
+  }).join('');
+  const teamA = roundPlayers.filter((_,i) => (teamAssignments[i]||'A') === 'A').map(p=>p.name);
+  const teamB = roundPlayers.filter((_,i) => teamAssignments[i] === 'B').map(p=>p.name);
+  if (aEl) aEl.textContent = teamA.join(', ') || '—';
+  if (bEl) bEl.textContent = teamB.join(', ') || '—';
+}
+window.renderTeamChips = renderTeamChips;
+
+function toggleTeam(i) {
+  teamAssignments[i] = (teamAssignments[i] || 'A') === 'A' ? 'B' : 'A';
+  renderTeamChips();
+}
+window.toggleTeam = toggleTeam;
 
 function quickAddPlayer() {
   const name = document.getElementById('quick-player-name').value.trim();
@@ -1159,14 +1294,18 @@ window.quickAddPlayer = quickAddPlayer;
 async function startRound() {
   if (!roundPlayers.length) { showToast('Add at least one player first!'); return; }
   if (!demoMode && !db) { showToast('Still connecting to Firebase...'); return; }
+  if (selectedGameMode === 'teams') {
+    const teamA = roundPlayers.filter((_,i) => (teamAssignments[i]||'A') === 'A');
+    const teamB = roundPlayers.filter((_,i) => teamAssignments[i] === 'B');
+    if (!teamA.length || !teamB.length) { showToast('Assign at least one player to each team!'); return; }
+  }
   const date = document.getElementById('round-date').value || new Date().toISOString().split('T')[0];
   const tee = document.getElementById('round-tee').value;
   const round = {
     date, tee, gameMode: selectedGameMode,
-    players: roundPlayers.map(p => ({ name: p.name, hcap: p.hcap, id: p.id || null })),
+    players: roundPlayers.map((p, i) => ({ name: p.name, hcap: p.hcap, id: p.id || null, team: selectedGameMode === 'teams' ? (teamAssignments[i] || 'A') : null })),
     scores: {}, finished: false, createdAt: Date.now()
   };
-  // For scramble, only one score track needed (hole-by-hole team score stored in index 0)
   if (selectedGameMode === 'scramble') { round.scores[0] = {}; }
   else { round.players.forEach((_, pi) => { round.scores[pi] = {}; }); }
   try {
@@ -1176,6 +1315,7 @@ async function startRound() {
     if (demoMode) rounds.unshift(round);
     currentHole = 0;
     roundPlayers = [];
+    teamAssignments = {};
     document.getElementById('play-start').classList.add('hidden');
     document.getElementById('play-scoring').classList.remove('hidden');
     renderScoringView();
@@ -1191,8 +1331,9 @@ function renderScoringView() {
   const mode = activeRound.gameMode || 'stroke';
   document.getElementById('scoring-date').textContent = `${activeRound.date} · ${activeRound.tee?.charAt(0).toUpperCase() + activeRound.tee?.slice(1)} Tees`;
   const badgeEl = document.getElementById('scoring-mode-badge');
-  badgeEl.textContent = { stroke: 'Stroke', scramble: 'Scramble', bestball: 'Best Ball', stableford: 'Stableford', matchplay: 'Match Play', skins: 'Skins' }[mode] || mode;
+  badgeEl.textContent = { stroke: 'Stroke', scramble: 'Scramble', bestball: 'Best Ball', stableford: 'Stableford', matchplay: 'Match Play', skins: 'Skins', teams: 'Teams' }[mode] || mode;
   badgeEl.className = `mode-badge mode-${mode}`;
+  startGPS();
   renderHoleDots(); renderHole(); renderRunningTotals();
 }
 
@@ -1243,6 +1384,7 @@ function renderHole() {
     const courseHcap = Math.round(player.hcap * (tee.slope / 113));
     const strokesReceived = si <= (courseHcap % 18) ? Math.floor(courseHcap / 18) + 1 : Math.floor(courseHcap / 18);
     const existing = activeRound.scores?.[pi]?.[h] ?? '';
+    const strokeDots = strokesReceived > 0 ? `<span style="color:var(--gold);font-size:14px;letter-spacing:-1px">${'●'.repeat(Math.min(strokesReceived,3))}</span>` : '';
 
     let extraInfo = '';
     if (mode === 'stableford') {
@@ -1253,8 +1395,8 @@ function renderHole() {
     return `<div class="card" style="padding:16px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
         <div>
-          <div style="font-weight:700;font-size:16px">${player.name}</div>
-          <div style="font-size:12px;color:var(--text-light)">HCP ${player.hcap} · Gets ${strokesReceived} stroke${strokesReceived !== 1 ? 's' : ''} here</div>
+          <div style="font-weight:700;font-size:16px">${player.name} ${strokeDots}</div>
+          <div style="font-size:12px;color:var(--text-light)">HCP ${player.hcap} · ${strokesReceived > 0 ? `Gets ${strokesReceived} stroke${strokesReceived!==1?'s':''} here` : 'No strokes'}</div>
           ${extraInfo}
         </div>
         <div style="display:flex;align-items:center;gap:12px">
@@ -1322,6 +1464,36 @@ function renderRunningTotals() {
     return;
   }
 
+  if (mode === 'teams') {
+    const teams = { A: { players: [], holeScores: {} }, B: { players: [], holeScores: {} } };
+    activeRound.players.forEach((player, pi) => {
+      const team = player.team || 'A';
+      teams[team].players.push(player.name);
+      const scores = activeRound.scores?.[pi] || {};
+      for (let h = 0; h < 18; h++) {
+        if (scores[h] !== undefined && scores[h] !== '') {
+          const s = parseInt(scores[h]) || 0;
+          if (teams[team].holeScores[h] === undefined || s < teams[team].holeScores[h]) teams[team].holeScores[h] = s;
+        }
+      }
+    });
+    el.innerHTML = ['A','B'].map(t => {
+      const hs = teams[t].holeScores;
+      let gross = 0, holes = 0, parTotal = 0;
+      for (let h = 0; h < 18; h++) { if (hs[h] !== undefined) { gross += hs[h]; parTotal += COURSE.par[h]; holes++; } }
+      const diff = gross - parTotal;
+      const diffStr = diff === 0 ? 'E' : diff > 0 ? `+${diff}` : `${diff}`;
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0ebe0">
+        <div><div style="font-weight:700">Team ${t}</div><div style="font-size:12px;color:var(--text-light)">${teams[t].players.join(', ')} · Thru ${holes}</div></div>
+        <div style="text-align:right">
+          <div style="font-size:18px;font-weight:700;color:var(--green-deep)">${gross||'-'} <span style="font-size:13px;color:${diff<0?'var(--blue)':diff>0?'var(--red)':'var(--green-mid)'}">${holes>0?diffStr:''}</span></div>
+          <div style="font-size:12px;color:var(--text-light)">Best ball</div>
+        </div>
+      </div>`;
+    }).join('');
+    return;
+  }
+
   if (mode === 'stableford') {
     el.innerHTML = activeRound.players.map((player, pi) => {
       const courseHcap = Math.round(player.hcap * (tee.slope / 113));
@@ -1367,13 +1539,14 @@ function renderRunningTotals() {
   }).join('');
 }
 
-function prevHole() { if (currentHole > 0) { currentHole--; renderHole(); renderHoleDots(); } }
-function nextHole() { if (currentHole < 17) { currentHole++; renderHole(); renderHoleDots(); } }
-function goToHole(h) { currentHole = h; renderHole(); renderHoleDots(); }
+function prevHole() { if (currentHole > 0) { currentHole--; renderHole(); renderHoleDots(); updateGPSDisplay(); } }
+function nextHole() { if (currentHole < 17) { currentHole++; renderHole(); renderHoleDots(); updateGPSDisplay(); } }
+function goToHole(h) { currentHole = h; renderHole(); renderHoleDots(); updateGPSDisplay(); }
 window.prevHole = prevHole; window.nextHole = nextHole; window.goToHole = goToHole;
 
 async function finishRound() {
   if (!confirm('Mark this round as finished?')) return;
+  stopGPS();
   activeRound.finished = true;
   await updateHandicaps(activeRound);
   await saveRound(activeRound);
@@ -1439,6 +1612,56 @@ function toggleHcapExclusion(playerName, roundId) {
   showToast(entry.excludeFromHcap ? 'Round excluded from handicap ✓' : 'Round included in handicap ✓');
 }
 window.toggleHcapExclusion = toggleHcapExclusion;
+
+// ─── CSV EXPORT ───────────────────────────────────────────────────────────────
+function exportPlayerCSV(playerName) {
+  const finished = rounds.filter(r => r.finished);
+  const rp = roster.find(r => r.name === playerName);
+  const parTotal = COURSE.par.reduce((a,b) => a+b, 0);
+
+  const rows = [];
+  // Header
+  rows.push(['Date','Tee','Mode','HCP','Course HCP','H1','H2','H3','H4','H5','H6','H7','H8','H9','Out','H10','H11','H12','H13','H14','H15','H16','H17','H18','In','Gross','Net','Differential','Excluded from HCP'].join(','));
+
+  finished.forEach(round => {
+    const pi = round.players.findIndex(p => p.name === playerName);
+    if (pi === -1) return;
+    const p = round.players[pi];
+    const tee = COURSE.tees[round.tee || 'white'];
+    const scores = round.scores?.[pi] || {};
+    const courseHcap = Math.round(p.hcap * (tee.slope / 113));
+    let gross = 0;
+    const holeScores = [];
+    for (let h = 0; h < 18; h++) {
+      const s = parseInt(scores[h]) || 0;
+      holeScores.push(s || '');
+      gross += s;
+    }
+    const front = holeScores.slice(0,9).reduce((a,v) => a + (parseInt(v)||0), 0);
+    const back  = holeScores.slice(9).reduce((a,v)  => a + (parseInt(v)||0), 0);
+    const net = gross - courseHcap;
+    const diff = gross ? Math.round((113 / tee.slope) * (gross - tee.rating) * 10) / 10 : '';
+    const hcapEntry = rp?.hcapHistory?.find(h => h.roundId === round.id);
+    const excluded = hcapEntry?.excludeFromHcap ? 'Yes' : 'No';
+    rows.push([
+      round.date, round.tee, round.gameMode || 'stroke', p.hcap, courseHcap,
+      ...holeScores.slice(0,9), front,
+      ...holeScores.slice(9), back,
+      gross, net, diff, excluded
+    ].join(','));
+  });
+
+  const csv = rows.join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${playerName.replace(/\s/g,'_')}_golf_history.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`Exported ${rows.length - 1} rounds ✓`);
+}
+window.exportPlayerCSV = exportPlayerCSV;
 
 // ─── HISTORY ──────────────────────────────────────────────────────────────────
 function renderHistory() {
@@ -1506,6 +1729,7 @@ function showRoundDetail(id) {
         </div>
         <button onclick="closeModal()" style="background:none;border:none;font-size:32px;cursor:pointer;color:var(--text-mid);padding:4px 10px;line-height:1">×</button>
       </div>
+      <button onclick="shareRound('${round.id}')" class="btn btn-gold" style="margin-bottom:16px;font-size:13px">📤 Share Scorecard as Image</button>
       <div style="overflow-x:auto">
       <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:340px">
         <tr>
@@ -2004,30 +2228,105 @@ function renderStats(playerName) {
       </div>
     </div>` : ''}
 
+    <!-- HOLE-BY-HOLE BEST SCORES TABLE -->
+    ${holeAvgs.length ? (() => {
+      // Build per-hole best score across all rounds for this player
+      const holeBests = Array.from({length:18}, () => null);
+      finished.forEach(round => {
+        const pi = round.players.findIndex(p => p.name === playerName);
+        if (pi === -1) return;
+        const scores = round.scores?.[pi] || {};
+        for (let h = 0; h < 18; h++) {
+          const s = parseInt(scores[h]);
+          if (!isNaN(s) && s > 0) {
+            if (holeBests[h] === null || s < holeBests[h]) holeBests[h] = s;
+          }
+        }
+      });
+      const frontBest = holeBests.slice(0,9).reduce((a,v) => a + (v||0), 0);
+      const backBest  = holeBests.slice(9).reduce((a,v)  => a + (v||0), 0);
+      const totalBest = frontBest + backBest;
+      return `<div style="margin-top:20px">
+        <div style="font-weight:700;color:var(--green-deep);font-size:15px;margin-bottom:10px">⭐ Best Score Per Hole</div>
+        <div style="overflow-x:auto;margin:0 -4px">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:340px">
+          <thead>
+            <tr>
+              <td style="padding:5px 4px;font-size:11px;color:var(--text-light);font-weight:600">Hole</td>
+              ${COURSE.par.map((_,i) => `<td style="text-align:center;padding:5px 2px;font-weight:700;color:var(--green-deep)">${i+1}</td>`).join('')}
+              <td style="text-align:center;padding:5px 4px;font-weight:700;color:var(--green-deep)">Out</td>
+              <td style="text-align:center;padding:5px 4px;font-weight:700;color:var(--green-deep)">In</td>
+              <td style="text-align:center;padding:5px 4px;font-weight:700;color:var(--green-deep)">Tot</td>
+            </tr>
+            <tr style="background:#f9f5ec">
+              <td style="padding:5px 4px;font-size:11px;color:var(--text-light)">Par</td>
+              ${COURSE.par.map(p => `<td style="text-align:center;padding:5px 2px;font-size:11px;color:var(--text-mid)">${p}</td>`).join('')}
+              <td style="text-align:center;padding:5px 4px;font-size:11px;color:var(--text-mid)">36</td>
+              <td style="text-align:center;padding:5px 4px;font-size:11px;color:var(--text-mid)">36</td>
+              <td style="text-align:center;padding:5px 4px;font-size:11px;color:var(--text-mid)">72</td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding:5px 4px;font-size:11px;color:var(--text-light)">Best</td>
+              ${holeBests.map((b, i) => {
+                if (b === null) return `<td style="text-align:center;padding:5px 2px;font-size:12px;color:#ccc">-</td>`;
+                const diff = b - COURSE.par[i];
+                const bg = diff <= -2 ? '#ffd700' : diff === -1 ? '#c8e6c9' : diff === 0 ? '#fff' : diff === 1 ? '#ffccbc' : diff === 2 ? '#ef9a9a' : '#ce93d8';
+                return `<td style="text-align:center;padding:4px 2px;background:${bg};font-size:12px;font-weight:700">${b}</td>`;
+              }).join('')}
+              <td style="text-align:center;padding:5px 4px;font-weight:700;font-size:13px;color:var(--green-deep)">${frontBest||'-'}</td>
+              <td style="text-align:center;padding:5px 4px;font-weight:700;font-size:13px;color:var(--green-deep)">${backBest||'-'}</td>
+              <td style="text-align:center;padding:5px 4px;font-weight:700;font-size:13px;color:var(--green-deep)">${totalBest||'-'}</td>
+            </tr>
+            <tr style="background:#f9f5ec">
+              <td style="padding:5px 4px;font-size:11px;color:var(--text-light)">Avg</td>
+              ${holeStats.map((h, i) => {
+                if (!h.count) return `<td style="text-align:center;padding:5px 2px;font-size:12px;color:#ccc">-</td>`;
+                const avg = Math.round((h.total/h.count)*10)/10;
+                const diff = avg - COURSE.par[i];
+                const color = diff < 0 ? 'var(--blue)' : diff > 0 ? 'var(--red)' : 'var(--green-mid)';
+                return `<td style="text-align:center;padding:5px 2px;font-size:11px;font-weight:600;color:${color}">${avg}</td>`;
+              }).join('')}
+              <td colspan="3"></td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>`;
+    })() : ''}
+
     <!-- HISTORIC ROUNDS LIST -->
     <div style="margin-top:24px">
-      <div style="font-weight:700;color:var(--green-deep);font-size:15px;margin-bottom:4px">📋 Round History</div>
-      <div style="font-size:12px;color:var(--text-light);margin-bottom:12px">Toggle the button to exclude a round from handicap calculation.</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <div style="font-weight:700;color:var(--green-deep);font-size:15px">📋 Round History</div>
+        ${playerRounds.length > 0 ? `<button onclick="exportPlayerCSV('${playerName}')" class="btn btn-outline btn-sm" style="font-size:11px;padding:5px 10px">⬇️ Export CSV</button>` : ''}
+      </div>
+      <div style="font-size:12px;color:var(--text-light);margin-bottom:12px">Tap a round to see the full scorecard. Toggle ✓/🚫 to exclude from handicap.</div>
       ${playerRounds.length === 0 ? '<p style="font-size:13px;color:var(--text-light)">No rounds yet.</p>' :
         playerRounds.map(r => {
           const diffStr = r.gross - parTotal === 0 ? 'E' : r.gross - parTotal > 0 ? `+${r.gross - parTotal}` : `${r.gross - parTotal}`;
           const canExclude = !!rp && rp.hcapHistory?.some(h => h.roundId === r.roundId);
           return `<div class="history-round-row ${r.excluded ? 'excluded-round' : ''}" style="background:${r.excluded ? '#fff5f5' : 'white'};border-radius:8px;padding:10px 12px;margin-bottom:6px;border:1px solid ${r.excluded ? '#ffcdd2' : '#f0ebe0'}">
-            <div style="flex:1">
-              <div style="font-weight:600;font-size:13px;color:var(--green-deep)">${r.date}</div>
+            <div style="flex:1;cursor:pointer" onclick="showRoundDetail('${r.roundId}')">
+              <div style="font-weight:600;font-size:13px;color:var(--green-deep)">${r.date} <span style="font-size:11px;color:var(--text-light);font-weight:400">· tap for scorecard</span></div>
               <div style="font-size:12px;color:var(--text-light)">${r.tee?.charAt(0).toUpperCase()+r.tee?.slice(1)} Tees · ${r.count < 18 ? `${r.count} holes` : '18 holes'}</div>
             </div>
-            <div style="text-align:right;margin-right:10px">
+            <div style="text-align:right;margin-right:10px;cursor:pointer" onclick="showRoundDetail('${r.roundId}')">
               <div style="font-weight:700;font-size:14px">Gross ${r.gross} <span style="font-size:12px;color:${r.gross-parTotal<0?'var(--blue)':'var(--red)'}">${diffStr}</span></div>
               <div style="font-size:12px;color:var(--text-mid)">Net ${r.net} · Diff ${r.diff}</div>
             </div>
             ${canExclude ? `<button class="hcap-exclude-btn ${r.excluded ? 'excluded' : ''}" onclick="toggleHcapExclusion('${playerName}', '${r.roundId}')">
-              ${r.excluded ? '🚫 Excluded' : '✓ Counting'}
+              ${r.excluded ? '🚫' : '✓'}
             </button>` : ''}
           </div>`;
         }).join('')
       }
-    </div>`;
+    </div>
+
+    ${buildHeatmap(playerName)}
+    ${buildTrendChart(playerName)}
+    ${buildSeasonSummary(playerName)}`;
 }
 window.renderStats = renderStats;
 
@@ -2080,6 +2379,34 @@ function renderBoard() {
   if (!messages.length) { el.innerHTML = '<div class="empty"><div class="icon">💬</div><p>No messages yet.<br>Be the first to post!</p></div>'; return; }
   el.innerHTML = messages.map(msg => {
     const timeStr = formatRelativeTime(msg.createdAt);
+    if (msg.isPoll) {
+      const totalVotes = Object.values(msg.pollVotes || {}).reduce((a, v) => a + (v?.length || 0), 0);
+      const optionsHtml = (msg.pollOptions || []).map((opt, i) => {
+        const voters = (msg.pollVotes?.[i] || []);
+        const count = voters.length;
+        const pct = totalVotes ? Math.round(count/totalVotes*100) : 0;
+        return `<div style="margin-bottom:8px" onclick="votePoll('${msg.id}',${i})">
+          <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:3px">
+            <span>${opt}</span><span style="color:var(--text-light)">${count} vote${count!==1?'s':''}</span>
+          </div>
+          <div style="background:#f0ebe0;border-radius:6px;height:20px;overflow:hidden;cursor:pointer">
+            <div style="height:100%;width:${pct}%;background:var(--green-mid);border-radius:6px;transition:width 0.4s;display:flex;align-items:center;padding-left:6px">
+              ${pct > 10 ? `<span style="font-size:11px;color:white;font-weight:700">${pct}%</span>` : ''}
+            </div>
+          </div>
+          ${voters.length ? `<div style="font-size:10px;color:var(--text-light);margin-top:2px">${voters.join(', ')}</div>` : ''}
+        </div>`;
+      }).join('');
+      return `<div class="message-item">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div><span class="message-author">${msg.author}</span><span class="message-time">${timeStr}</span><span style="margin-left:6px;font-size:11px;background:#e3f2fd;color:var(--blue);padding:1px 6px;border-radius:10px;font-weight:600">POLL</span></div>
+          <button onclick="deleteMessage('${msg.id}')" style="background:none;border:none;color:#ccc;font-size:16px;cursor:pointer;padding:0 4px;line-height:1">×</button>
+        </div>
+        <div class="message-text" style="font-weight:600;margin-bottom:10px">${escapeHtml(msg.text)}</div>
+        ${optionsHtml}
+        <div style="font-size:11px;color:var(--text-light);margin-top:4px">Tap an option to vote · ${totalVotes} total vote${totalVotes!==1?'s':''}</div>
+      </div>`;
+    }
     const reactionHtml = REACTIONS.map(emoji => {
       const count = msg.reactions?.[emoji] || 0;
       return `<button class="reaction-btn ${count > 0 ? 'reacted' : ''}" onclick="addReaction('${msg.id}','${emoji}')">${emoji}${count > 0 ? ` ${count}` : ''}</button>`;
@@ -2273,6 +2600,494 @@ If you cannot read a score clearly, use null for that hole. If you can see a dat
 }
 window.scanScorecard = scanScorecard;
 
+// ─── WEATHER WIDGET ───────────────────────────────────────────────────────────
+// Stanhope Golf & Country Club coords
+const STANHOPE_LAT = 46.4096, STANHOPE_LON = -63.0632;
+
+async function loadWeather() {
+  const el = document.getElementById('weather-main');
+  const sub = document.getElementById('weather-sub');
+  const icon = document.getElementById('weather-icon');
+  const details = document.getElementById('weather-details');
+  if (!el) return;
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${STANHOPE_LAT}&longitude=${STANHOPE_LON}&current=temperature_2m,apparent_temperature,weathercode,windspeed_10m,winddirection_10m,precipitation,relativehumidity_2m&wind_speed_unit=kmh&temperature_unit=celsius&timezone=America%2FHalifax`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const c = data.current;
+    const wc = c.weathercode;
+    const iconMap = { 0:'☀️', 1:'🌤️', 2:'⛅', 3:'☁️', 45:'🌫️', 48:'🌫️', 51:'🌦️', 53:'🌦️', 55:'🌧️', 61:'🌧️', 63:'🌧️', 65:'🌧️', 71:'🌨️', 73:'🌨️', 75:'❄️', 80:'🌦️', 81:'🌧️', 82:'⛈️', 85:'🌨️', 95:'⛈️' };
+    const descMap = { 0:'Clear skies', 1:'Mostly clear', 2:'Partly cloudy', 3:'Overcast', 45:'Foggy', 48:'Icy fog', 51:'Light drizzle', 53:'Drizzle', 55:'Heavy drizzle', 61:'Light rain', 63:'Rain', 65:'Heavy rain', 71:'Light snow', 73:'Snow', 75:'Heavy snow', 80:'Light showers', 81:'Showers', 82:'Heavy showers', 85:'Snow showers', 95:'Thunderstorm' };
+    const windDir = (deg) => { const dirs = ['N','NE','E','SE','S','SW','W','NW']; return dirs[Math.round(deg/45)%8]; };
+    const golfRating = () => {
+      if (c.precipitation > 2) return '⛔ Poor conditions';
+      if (c.windspeed_10m > 40) return '💨 Very windy';
+      if (c.windspeed_10m > 25) return '🌬️ Windy — expect harder play';
+      if ([61,63,65,80,81,82,95].includes(wc)) return '🌧️ Wet — carry extra balls';
+      if (c.temperature_2m < 10) return '🥶 Dress warm';
+      if (c.temperature_2m > 25 && wc === 0) return '☀️ Perfect golf weather!';
+      return '✅ Good conditions';
+    };
+    el.textContent = `${Math.round(c.temperature_2m)}°C · ${descMap[wc] || 'Unknown'}`;
+    sub.textContent = golfRating();
+    icon.textContent = iconMap[wc] || '🌡️';
+    details.innerHTML = [
+      `<span style="font-size:12px;color:rgba(245,240,232,0.7)">💨 ${Math.round(c.windspeed_10m)} km/h ${windDir(c.winddirection_10m)}</span>`,
+      `<span style="font-size:12px;color:rgba(245,240,232,0.7)">💧 ${c.relativehumidity_2m}% humidity</span>`,
+      `<span style="font-size:12px;color:rgba(245,240,232,0.7)">🌡️ Feels ${Math.round(c.apparent_temperature)}°C</span>`,
+      c.precipitation > 0 ? `<span style="font-size:12px;color:rgba(245,240,232,0.7)">🌧️ ${c.precipitation}mm</span>` : ''
+    ].filter(Boolean).join('');
+  } catch(e) {
+    if (el) el.textContent = 'Weather unavailable (offline?)';
+  }
+}
+
+// ─── GPS DISTANCE TO GREEN ────────────────────────────────────────────────────
+// Approximate green coordinates for Stanhope GCC (lat/lon of each green)
+const HOLE_GREENS = [
+  [46.4108,-63.0571],[46.4118,-63.0548],[46.4129,-63.0562],[46.4140,-63.0578],
+  [46.4151,-63.0591],[46.4143,-63.0608],[46.4132,-63.0622],[46.4120,-63.0635],
+  [46.4109,-63.0648],[46.4097,-63.0661],[46.4086,-63.0648],[46.4074,-63.0635],
+  [46.4063,-63.0622],[46.4052,-63.0609],[46.4063,-63.0592],[46.4074,-63.0579],
+  [46.4086,-63.0566],[46.4097,-63.0578]
+];
+
+let gpsWatchId = null;
+let userLat = null, userLon = null;
+
+function haversineM(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const dLat = (lat2-lat1)*Math.PI/180;
+  const dLon = (lon2-lon1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function startGPS() {
+  if (!navigator.geolocation) return;
+  gpsWatchId = navigator.geolocation.watchPosition(pos => {
+    userLat = pos.coords.latitude;
+    userLon = pos.coords.longitude;
+    updateGPSDisplay();
+  }, () => {}, { enableHighAccuracy: true, maximumAge: 5000 });
+}
+
+function stopGPS() {
+  if (gpsWatchId !== null) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
+}
+
+function updateGPSDisplay() {
+  const el = document.getElementById('gps-distance');
+  if (!el || userLat === null) return;
+  const green = HOLE_GREENS[currentHole];
+  if (!green) return;
+  const meters = haversineM(userLat, userLon, green[0], green[1]);
+  const yards = Math.round(meters * 1.09361);
+  el.textContent = `📍 ${yards} yds to green`;
+}
+
+// ─── OFFLINE MODE (Service Worker + cache) ───────────────────────────────────
+function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  const swCode = `
+const CACHE = 'stanhope-golf-v1';
+const ASSETS = [location.href];
+self.addEventListener('install', e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS))));
+self.addEventListener('fetch', e => e.respondWith(
+  fetch(e.request).catch(() => caches.match(e.request))
+));`;
+  const blob = new Blob([swCode], {type:'application/javascript'});
+  const url = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(url).catch(()=>{});
+}
+
+// ─── HANDICAP STROKE DOTS ON SCORECARD ──────────────────────────────────────
+// Already shown as text ("Gets N strokes here") — now also add visual dots to hole header
+function getStrokeDots(courseHcap, si) {
+  const strokes = si <= (courseHcap % 18) ? Math.floor(courseHcap / 18) + 1 : Math.floor(courseHcap / 18);
+  if (strokes === 0) return '';
+  return ' ' + '●'.repeat(Math.min(strokes, 3));
+}
+
+// ─── HEATMAP (hole-by-hole) ───────────────────────────────────────────────────
+function buildHeatmap(playerName) {
+  const finished = rounds.filter(r => r.finished);
+  const holeStats = Array.from({length:18}, () => ({ total:0, count:0 }));
+  finished.forEach(round => {
+    const pi = round.players.findIndex(p => p.name === playerName);
+    if (pi === -1) return;
+    const scores = round.scores?.[pi] || {};
+    for (let h = 0; h < 18; h++) {
+      const s = parseInt(scores[h]);
+      if (!isNaN(s) && s > 0) { holeStats[h].total += s; holeStats[h].count++; }
+    }
+  });
+  const diffs = holeStats.map((h,i) => h.count ? (h.total/h.count) - COURSE.par[i] : null);
+  const valid = diffs.filter(d => d !== null);
+  const min = Math.min(...valid), max = Math.max(...valid);
+
+  const cells = diffs.map((d, i) => {
+    if (d === null) return `<div style="background:#f0ebe0;border-radius:6px;padding:6px 2px;text-align:center;font-size:11px;color:#ccc"><div style="font-weight:700;color:var(--text-light)">${i+1}</div><div>-</div></div>`;
+    const norm = max > min ? (d - min)/(max - min) : 0.5;
+    const r = Math.round(30 + norm * 180);
+    const g = Math.round(180 - norm * 150);
+    const b = 60;
+    const bg = `rgb(${r},${g},${b})`;
+    const diffStr = d === 0 ? 'E' : d > 0 ? `+${d.toFixed(1)}` : d.toFixed(1);
+    return `<div style="background:${bg};border-radius:6px;padding:6px 2px;text-align:center;font-size:11px;color:white">
+      <div style="font-weight:700">${i+1}</div>
+      <div style="font-size:10px">p${COURSE.par[i]}</div>
+      <div style="font-weight:700;font-size:12px">${diffStr}</div>
+    </div>`;
+  });
+
+  return `<div style="margin-top:20px">
+    <div style="font-weight:700;color:var(--green-deep);font-size:15px;margin-bottom:6px">🌡️ Hole Heatmap</div>
+    <div style="font-size:12px;color:var(--text-light);margin-bottom:10px">Green = easiest for you · Red = hardest. Shows avg score vs par.</div>
+    <div style="display:grid;grid-template-columns:repeat(9,1fr);gap:3px;margin-bottom:4px">${cells.slice(0,9).join('')}</div>
+    <div style="display:grid;grid-template-columns:repeat(9,1fr);gap:3px">${cells.slice(9).join('')}</div>
+    <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+      <div style="width:40px;height:8px;background:linear-gradient(90deg,rgb(30,180,60),rgb(210,30,60));border-radius:4px"></div>
+      <span style="font-size:11px;color:var(--text-light)">Best → Worst</span>
+    </div>
+  </div>`;
+}
+
+// ─── HANDICAP TREND CHART ─────────────────────────────────────────────────────
+function buildTrendChart(playerName) {
+  const rp = roster.find(r => r.name === playerName);
+  if (!rp || !rp.hcapHistory || rp.hcapHistory.length < 2) return '';
+  const history = rp.hcapHistory.slice(-20);
+
+  // Recalculate running handicap at each point
+  const points = history.map((entry, i) => {
+    const slice = history.slice(0, i+1).filter(h => !h.excludeFromHcap);
+    const sorted = [...slice].sort((a,b) => a.diff - b.diff);
+    const best = sorted.slice(0, Math.min(8, sorted.length));
+    const avg = best.length ? best.reduce((a,b) => a+b.diff, 0)/best.length : entry.diff;
+    return { date: entry.date, hcap: Math.round(avg * 0.96 * 10) / 10, gross: entry.gross };
+  });
+
+  const hcaps = points.map(p => p.hcap);
+  const minH = Math.min(...hcaps) - 1, maxH = Math.max(...hcaps) + 1;
+  const W = 280, H = 100;
+  const xStep = W / Math.max(points.length - 1, 1);
+
+  const toY = v => H - ((v - minH) / (maxH - minH)) * H;
+  const pts = points.map((p, i) => `${i * xStep},${toY(p.hcap)}`).join(' ');
+  const areaPath = `M0,${H} ` + points.map((p,i) => `L${i*xStep},${toY(p.hcap)}`).join(' ') + ` L${(points.length-1)*xStep},${H} Z`;
+
+  const labels = points.filter((_,i) => i === 0 || i === points.length-1 || i % Math.ceil(points.length/4) === 0)
+    .map(p => `<div style="font-size:9px;color:var(--text-light)">${p.date.slice(5)}</div>`).join('');
+
+  return `<div style="margin-top:20px">
+    <div style="font-weight:700;color:var(--green-deep);font-size:15px;margin-bottom:6px">📈 Handicap Trend</div>
+    <div style="background:#f9f5ec;border-radius:12px;padding:12px;overflow:hidden">
+      <svg viewBox="0 0 ${W} ${H+10}" style="width:100%;height:auto;overflow:visible">
+        <defs>
+          <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#2d5a3d" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="#2d5a3d" stop-opacity="0.02"/>
+          </linearGradient>
+        </defs>
+        <path d="${areaPath}" fill="url(#trendGrad)"/>
+        <polyline points="${pts}" fill="none" stroke="var(--green-mid)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        ${points.map((p,i) => `<circle cx="${i*xStep}" cy="${toY(p.hcap)}" r="3.5" fill="var(--green-mid)"/>
+          <text x="${i*xStep}" y="${toY(p.hcap)-7}" text-anchor="middle" font-size="9" fill="var(--text-mid)">${p.hcap}</text>`).join('')}
+      </svg>
+      <div style="display:flex;justify-content:space-between;margin-top:4px">${labels}</div>
+      <div style="display:flex;justify-content:space-between;margin-top:8px">
+        <div style="text-align:center"><div style="font-size:18px;font-weight:900;color:var(--green-deep)">${points[0]?.hcap}</div><div style="font-size:10px;color:var(--text-light)">Started</div></div>
+        <div style="text-align:center"><div style="font-size:18px;font-weight:900;color:${hcaps[hcaps.length-1] < hcaps[0] ? 'var(--blue)' : 'var(--red)'}">${hcaps[hcaps.length-1]}</div><div style="font-size:10px;color:var(--text-light)">Current</div></div>
+        <div style="text-align:center"><div style="font-size:18px;font-weight:900;color:var(--green-deep)">${Math.min(...hcaps)}</div><div style="font-size:10px;color:var(--text-light)">Best</div></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─── SEASON SUMMARY ───────────────────────────────────────────────────────────
+function buildSeasonSummary(playerName) {
+  const finished = rounds.filter(r => r.finished);
+  if (!finished.length) return '';
+  const parTotal = COURSE.par.reduce((a,b) => a+b, 0);
+
+  // Group by month
+  const byMonth = {};
+  finished.forEach(round => {
+    const pi = round.players.findIndex(p => p.name === playerName);
+    if (pi === -1) return;
+    const p = round.players[pi];
+    const tee = COURSE.tees[round.tee || 'white'];
+    const scores = round.scores?.[pi] || {};
+    let gross = 0, count = 0;
+    for (let h = 0; h < 18; h++) { const s = parseInt(scores[h]); if (!isNaN(s) && s > 0) { gross += s; count++; } }
+    if (count < 18) return;
+    const courseHcap = Math.round(p.hcap * (tee.slope / 113));
+    const net = gross - courseHcap;
+    const month = round.date.slice(0, 7); // YYYY-MM
+    if (!byMonth[month]) byMonth[month] = { rounds: 0, totalGross: 0, totalNet: 0, bests: [] };
+    byMonth[month].rounds++;
+    byMonth[month].totalGross += gross;
+    byMonth[month].totalNet += net;
+    byMonth[month].bests.push({ gross, net });
+  });
+
+  const months = Object.keys(byMonth).sort();
+  if (!months.length) return '';
+
+  const monthNames = { '01':'Jan','02':'Feb','03':'Mar','04':'Apr','05':'May','06':'Jun','07':'Jul','08':'Aug','09':'Sep','10':'Oct','11':'Nov','12':'Dec' };
+  const bestMonth = months.reduce((a,b) => (byMonth[a].totalNet/byMonth[a].rounds) < (byMonth[b].totalNet/byMonth[b].rounds) ? a : b);
+  const worstMonth = months.reduce((a,b) => (byMonth[a].totalNet/byMonth[a].rounds) > (byMonth[b].totalNet/byMonth[b].rounds) ? a : b);
+  const busiestMonth = months.reduce((a,b) => byMonth[a].rounds > byMonth[b].rounds ? a : b);
+
+  const totalRounds = Object.values(byMonth).reduce((a,m) => a + m.rounds, 0);
+  const totalGross = Object.values(byMonth).reduce((a,m) => a + m.totalGross, 0);
+  const allNets = finished.filter(r => {
+    const pi = r.players.findIndex(p => p.name === playerName);
+    if (pi === -1) return false;
+    const scores = r.scores?.[pi] || {};
+    let count = 0; for (let h=0;h<18;h++) if(parseInt(scores[h])>0) count++;
+    return count === 18;
+  });
+
+  return `<div style="margin-top:20px">
+    <div style="font-weight:700;color:var(--green-deep);font-size:15px;margin-bottom:10px">📅 Season Summary</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+      <div style="background:#e8f5e9;border-radius:10px;padding:10px;text-align:center">
+        <div style="font-size:18px;font-weight:900;color:var(--green-mid)">${totalRounds}</div>
+        <div style="font-size:10px;color:var(--text-light);text-transform:uppercase">Rounds</div>
+      </div>
+      <div style="background:#e3f2fd;border-radius:10px;padding:10px;text-align:center">
+        <div style="font-size:14px;font-weight:700;color:var(--blue)">${monthNames[bestMonth.slice(5)]}</div>
+        <div style="font-size:10px;color:var(--text-light);text-transform:uppercase">Best Month</div>
+        <div style="font-size:11px;color:var(--blue)">Avg net ${Math.round(byMonth[bestMonth].totalNet/byMonth[bestMonth].rounds)}</div>
+      </div>
+      <div style="background:#fce4ec;border-radius:10px;padding:10px;text-align:center">
+        <div style="font-size:14px;font-weight:700;color:var(--red)">${monthNames[worstMonth.slice(5)]}</div>
+        <div style="font-size:10px;color:var(--text-light);text-transform:uppercase">Tough Month</div>
+        <div style="font-size:11px;color:var(--red)">Avg net ${Math.round(byMonth[worstMonth].totalNet/byMonth[worstMonth].rounds)}</div>
+      </div>
+    </div>
+    <div style="font-size:13px;font-weight:600;color:var(--green-deep);margin-bottom:8px">Month by Month</div>
+    ${months.map(m => {
+      const md = byMonth[m];
+      const avgNet = Math.round(md.totalNet / md.rounds);
+      const avgGross = Math.round(md.totalGross / md.rounds);
+      const diff = avgGross - parTotal;
+      const diffStr = diff === 0 ? 'E' : diff > 0 ? `+${diff}` : `${diff}`;
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0ebe0">
+        <div><div style="font-weight:600;font-size:14px">${monthNames[m.slice(5)]} ${m.slice(0,4)}</div><div style="font-size:12px;color:var(--text-light)">${md.rounds} round${md.rounds>1?'s':''}</div></div>
+        <div style="text-align:right"><div style="font-weight:700">Avg ${avgGross} <span style="font-size:12px;color:${diff<0?'var(--blue)':'var(--red)'}">${diffStr}</span></div><div style="font-size:12px;color:var(--text-mid)">Net ${avgNet}</div></div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+// ─── SHARE ROUND AS IMAGE ─────────────────────────────────────────────────────
+function shareRound(roundId) {
+  const round = rounds.find(r => r.id === roundId);
+  if (!round) return;
+  const tee = COURSE.tees[round.tee || 'white'];
+  const results = round.players.map((p, pi) => {
+    const scores = round.scores?.[pi] || {};
+    let gross = 0, front = 0, back = 0;
+    const holeScores = [];
+    for (let h = 0; h < 18; h++) {
+      const s = parseInt(scores[h]) || 0;
+      holeScores.push(s);
+      gross += s;
+      if (h < 9) front += s; else back += s;
+    }
+    const courseHcap = Math.round(p.hcap * (tee.slope / 113));
+    return { name: p.name, hcap: p.hcap, courseHcap, gross, net: gross - courseHcap, front, back, holeScores };
+  });
+
+  const canvas = document.createElement('canvas');
+  const scale = 2;
+  const W = 700, H = 260 + results.length * 34 + 60;
+  canvas.width = W * scale; canvas.height = H * scale;
+  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(scale, scale);
+
+  // Background
+  ctx.fillStyle = '#1a3a2a';
+  ctx.fillRect(0, 0, W, H);
+
+  // Header
+  ctx.fillStyle = '#c9a84c';
+  ctx.font = 'bold 20px serif';
+  ctx.fillText('Stanhope Golf & Country Club', 20, 36);
+  ctx.fillStyle = 'rgba(245,240,232,0.6)';
+  ctx.font = '13px sans-serif';
+  ctx.fillText(`${round.date}  ·  ${round.tee?.charAt(0).toUpperCase()+round.tee?.slice(1)} Tees  ·  Par 72`, 20, 58);
+
+  // Table header
+  const cols = [0,80,...Array.from({length:9},(_,i)=>100+i*30), 380, ...Array.from({length:9},(_,i)=>410+i*30), 690,720,750,780];
+  const rowH = 30;
+  let y = 80;
+  ctx.fillStyle = '#2d5a3d';
+  ctx.fillRect(0, y, W, rowH);
+  ctx.fillStyle = '#c9a84c';
+  ctx.font = 'bold 11px sans-serif';
+  ctx.fillText('Player', 8, y+19);
+  for (let i=0;i<9;i++) ctx.fillText(i+1, cols[i+2]+6, y+19);
+  ctx.fillText('Out', cols[11]+2, y+19);
+  for (let i=0;i<9;i++) ctx.fillText(i+10, cols[i+12]+2, y+19);
+  ctx.fillText('In', cols[21]+2, y+19);
+  ctx.fillText('Grs', cols[22]+1, y+19);
+  ctx.fillText('Net', cols[23]+1, y+19);
+  y += rowH;
+
+  // Par row
+  ctx.fillStyle = '#f9f5ec';
+  ctx.fillRect(0, y, W, rowH-4);
+  ctx.fillStyle = '#666';
+  ctx.font = '11px sans-serif';
+  ctx.fillText('Par', 8, y+17);
+  COURSE.par.slice(0,9).forEach((p,i) => ctx.fillText(p, cols[i+2]+8, y+17));
+  ctx.fillText('36', cols[11]+4, y+17);
+  COURSE.par.slice(9).forEach((p,i) => ctx.fillText(p, cols[i+12]+5, y+17));
+  ctx.fillText('36', cols[21]+4, y+17);
+  ctx.fillText('72', cols[22]+3, y+17);
+  y += rowH;
+
+  // Score color helper
+  const scoreColor = (s, par) => {
+    if (!s) return '#fff';
+    const d = s - par;
+    return d <= -2 ? '#ffd700' : d === -1 ? '#c8e6c9' : d === 0 ? '#ffffff' : d === 1 ? '#ffccbc' : d === 2 ? '#ef9a9a' : '#ce93d8';
+  };
+
+  results.forEach((r, ri) => {
+    ctx.fillStyle = ri % 2 === 0 ? '#ffffff' : '#f5f0e8';
+    ctx.fillRect(0, y, W, rowH);
+    ctx.fillStyle = '#1a1a1a';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.fillText(r.name, 8, y+19);
+    r.holeScores.slice(0,9).forEach((s,i) => {
+      if (s) {
+        ctx.fillStyle = scoreColor(s, COURSE.par[i]);
+        ctx.fillRect(cols[i+2], y+2, 26, rowH-4);
+        ctx.fillStyle = '#333';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText(s, cols[i+2]+7, y+19);
+      }
+    });
+    ctx.fillStyle = '#1a1a1a';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.fillText(r.front||'-', cols[11]+4, y+19);
+    r.holeScores.slice(9).forEach((s,i) => {
+      if (s) {
+        ctx.fillStyle = scoreColor(s, COURSE.par[i+9]);
+        ctx.fillRect(cols[i+12], y+2, 26, rowH-4);
+        ctx.fillStyle = '#333';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText(s, cols[i+12]+5, y+19);
+      }
+    });
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillText(r.back||'-', cols[21]+4, y+19);
+    ctx.fillText(r.gross||'-', cols[22]+3, y+19);
+    ctx.fillStyle = '#2d5a3d';
+    ctx.fillText(r.net||'-', cols[23]+3, y+19);
+    y += rowH;
+  });
+
+  // Footer
+  ctx.fillStyle = '#c9a84c';
+  ctx.font = '11px sans-serif';
+  ctx.fillText('Generated by Stanhope Golf App', 20, y + 30);
+
+  // Convert to blob and share/download
+  canvas.toBlob(blob => {
+    const url = URL.createObjectURL(blob);
+    // Try Web Share API first (works on iPhone)
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], 'scorecard.png', {type:'image/png'})] })) {
+      navigator.share({ title: `Scorecard - ${round.date}`, files: [new File([blob], 'scorecard.png', {type:'image/png'})] })
+        .catch(() => downloadImage(url, round.date));
+    } else {
+      downloadImage(url, round.date);
+    }
+  }, 'image/png');
+}
+
+function downloadImage(url, date) {
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `stanhope-scorecard-${date}.png`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Scorecard saved! 📸');
+}
+window.shareRound = shareRound;
+
+// ─── POLLS ────────────────────────────────────────────────────────────────────
+let pollOptions = [];
+
+function openPollComposer() {
+  pollOptions = ['', ''];
+  const authorEl = document.getElementById('poll-author');
+  if (authorEl) {
+    authorEl.innerHTML = '<option value="">Select...</option>' + roster.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+  }
+  renderPollOptions();
+  document.getElementById('poll-modal').classList.remove('hidden');
+}
+window.openPollComposer = openPollComposer;
+
+function closePollComposer() { document.getElementById('poll-modal').classList.add('hidden'); }
+window.closePollComposer = closePollComposer;
+
+function addPollOption() { pollOptions.push(''); renderPollOptions(); }
+window.addPollOption = addPollOption;
+
+function renderPollOptions() {
+  const el = document.getElementById('poll-options-list');
+  el.innerHTML = pollOptions.map((opt, i) => `
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <input class="form-input" value="${opt}" placeholder="Option ${i+1}" oninput="pollOptions[${i}]=this.value" style="flex:1">
+      ${i >= 2 ? `<button onclick="pollOptions.splice(${i},1);renderPollOptions()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--red)">×</button>` : ''}
+    </div>`).join('');
+}
+
+async function submitPoll() {
+  const author = document.getElementById('poll-author').value;
+  const question = document.getElementById('poll-question').value.trim();
+  const options = pollOptions.filter(o => o.trim());
+  if (!author) { showToast('Select your name'); return; }
+  if (!question) { showToast('Enter a question'); return; }
+  if (options.length < 2) { showToast('Add at least 2 options'); return; }
+  const msg = {
+    author, text: question, createdAt: Date.now(), isPoll: true,
+    pollOptions: options,
+    pollVotes: {} // { optionIndex: [playerName, ...] }
+  };
+  await saveMessage(msg);
+  if (demoMode) renderBoard();
+  closePollComposer();
+  document.getElementById('poll-question').value = '';
+  showToast('Poll posted! 📊');
+}
+window.submitPoll = submitPoll;
+
+async function votePoll(msgId, optIdx) {
+  const author = document.getElementById('msg-author').value;
+  if (!author) { showToast('Select your name to vote!'); return; }
+  const msg = messages.find(m => m.id === msgId);
+  if (!msg) return;
+  if (!msg.pollVotes) msg.pollVotes = {};
+  // Remove existing vote from this person
+  Object.keys(msg.pollVotes).forEach(k => {
+    msg.pollVotes[k] = (msg.pollVotes[k] || []).filter(n => n !== author);
+  });
+  if (!msg.pollVotes[optIdx]) msg.pollVotes[optIdx] = [];
+  msg.pollVotes[optIdx].push(author);
+  if (demoMode) { localStorage.setItem('sgolf_messages', JSON.stringify(messages)); renderBoard(); return; }
+  await window._fbUpdate(window._fbRef(db, `messages/${msgId}/pollVotes`), msg.pollVotes);
+}
+window.votePoll = votePoll;
+
 // ─── TOAST ────────────────────────────────────────────────────────────────────
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -2356,6 +3171,7 @@ window.clearAllData = clearAllData;
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 window.addEventListener('load', () => {
+  registerServiceWorker();
   const cfg = {
     apiKey: "AIzaSyAtWG5cPVH1h4UwTqEsYIC9k2jaXuEgtCE",
     authDomain: "stanhope-golf.firebaseapp.com",
