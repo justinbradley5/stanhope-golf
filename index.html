@@ -9,6 +9,8 @@
 <title>Stanhope Golf</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
   :root {
@@ -86,15 +88,15 @@
   .nav {
     display: flex;
     background: var(--green-deep);
-    border-bottom: 1px solid rgba(201,168,76,0.3);
-    overflow-x: auto;
-    scrollbar-width: none;
+    border-top: 1px solid rgba(201,168,76,0.3);
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 50;
+    padding-bottom: env(safe-area-inset-bottom);
   }
-  .nav::-webkit-scrollbar { display: none; }
   .nav-btn {
     flex: 1;
-    min-width: 70px;
-    padding: 12px 6px;
+    padding: 10px 6px 8px;
     background: none;
     border: none;
     color: rgba(245,240,232,0.5);
@@ -105,16 +107,38 @@
     text-transform: uppercase;
     cursor: pointer;
     transition: all 0.2s;
-    border-bottom: 2px solid transparent;
+    border-top: 2px solid transparent;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 3px;
   }
-  .nav-btn .icon { font-size: 16px; }
-  .nav-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+  .nav-btn .icon { font-size: 18px; }
+  .nav-btn.active { color: var(--gold); border-top-color: var(--gold); }
 
-  .content { flex: 1; padding: 20px 16px; max-width: 600px; margin: 0 auto; width: 100%; }
+  .more-menu-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 16px 8px;
+    border-radius: 14px;
+    border: 1.5px solid #e0d8cc;
+    background: #f9f5ec;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--green-deep);
+    cursor: pointer;
+    transition: all 0.15s;
+    width: 100%;
+  }
+  .more-menu-btn .icon { font-size: 24px; }
+  .more-menu-btn:active { background: #e0ede0; border-color: var(--green-mid); }
+  .more-menu-btn.active-secondary { background: var(--green-deep); border-color: var(--green-mid); color: var(--gold); }
+
+  .content { flex: 1; padding: 20px 16px calc(80px + env(safe-area-inset-bottom)); max-width: 600px; margin: 0 auto; width: 100%; }
 
   .card {
     background: var(--card-bg);
@@ -245,7 +269,7 @@
 
   .toast {
     position: fixed;
-    bottom: 90px; left: 50%;
+    bottom: calc(80px + env(safe-area-inset-bottom)); left: 50%;
     transform: translateX(-50%) translateY(20px);
     background: var(--green-deep);
     color: var(--gold);
@@ -339,6 +363,8 @@
   }
   .reaction-btn:active { transform: scale(1.2); }
   .reaction-btn.reacted { background: #e8f5e9; border-color: var(--green-light); }
+  .reply-item { padding: 5px 0; }
+  .reply-btn { background: none; border: none; font-size: 12px; color: var(--text-light); cursor: pointer; padding: 2px 0; }
 
   /* Handicap exclusion toggle */
   .hcap-exclude-btn {
@@ -392,9 +418,66 @@
   .firebase-box ol { font-size: 13px; color: var(--text-mid); line-height: 2; padding-left: 18px; margin-bottom: 16px; }
   .firebase-box a { color: var(--green-mid); font-weight: 600; }
   .firebase-box .note { background: #f9f5ec; border-radius: 8px; padding: 10px 12px; font-size: 12px; color: var(--text-mid); margin-bottom: 16px; }
+
+  /* PIN pad */
+  .pin-dot {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 2px solid #e0d8cc;
+    background: white;
+    transition: all 0.15s;
+  }
+  .pin-dot.filled { background: var(--green-deep); border-color: var(--green-deep); }
+  .pin-key {
+    padding: 16px;
+    border-radius: 12px;
+    border: 1.5px solid #e0d8cc;
+    background: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 20px; font-weight: 600;
+    color: var(--text-dark);
+    cursor: pointer;
+    transition: all 0.1s;
+  }
+  .pin-key:active { background: var(--green-deep); color: var(--gold); border-color: var(--green-deep); }
+  @keyframes pinShake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(6px); }
+  }
 </style>
 </head>
 <body>
+
+<!-- LOGIN OVERLAY -->
+<div class="firebase-overlay" id="loginOverlay" style="display:none">
+  <div class="firebase-box" style="text-align:center">
+    <div style="font-size:52px;margin-bottom:8px">⛳</div>
+    <h2>Stanhope Golf</h2>
+    <p style="margin-bottom:24px">Sign in to access the club app</p>
+    <button class="btn btn-gold" onclick="signInWithGoogle()" style="width:100%;justify-content:center;gap:10px;font-size:15px">
+      Sign in with Google
+    </button>
+    <button class="btn btn-outline" style="margin-top:10px;width:100%" onclick="useDemoMode()">Try Demo Mode (no sharing)</button>
+  </div>
+</div>
+
+<!-- PLAYER PICKER OVERLAY -->
+<div class="firebase-overlay" id="playerPickerOverlay" style="display:none">
+  <div class="firebase-box">
+    <h2>👋 Who are you?</h2>
+    <p style="margin-bottom:16px">Link your Google account to your player profile so the app knows it's you every time.</p>
+    <div id="player-picker-list"></div>
+    <div style="margin-top:12px;border-top:1px solid #e0d8cc;padding-top:14px">
+      <p style="font-size:13px;color:var(--text-mid);margin-bottom:8px">Not on the list? Add yourself:</p>
+      <input class="form-input" id="new-player-name" placeholder="Your name">
+      <input type="number" class="form-input" id="new-player-hcap" placeholder="Handicap (e.g. 14.2)" min="0" max="54" step="0.1" style="margin-top:8px">
+      <button class="btn btn-gold" onclick="createAndPickPlayer()" style="margin-top:8px;width:100%">Join as New Player</button>
+    </div>
+  </div>
+</div>
 
 <!-- FIREBASE SETUP OVERLAY -->
 <div class="firebase-overlay" id="firebaseOverlay">
@@ -440,18 +523,33 @@
   <div class="header">
     <h1>Stanhope <span>Golf</span></h1>
     <p>& Country Club · PEI</p>
+    <div id="user-badge" style="display:none;align-items:center;justify-content:center;gap:8px;margin-top:10px">
+      <span style="font-size:12px;color:rgba(245,240,232,0.75)">Signed in as <strong id="user-badge-name" style="color:var(--gold)"></strong></span>
+      <button onclick="signOutUser()" style="font-size:11px;color:rgba(245,240,232,0.6);background:none;border:1px solid rgba(245,240,232,0.3);border-radius:10px;padding:2px 8px;cursor:pointer;font-family:'DM Sans',sans-serif">Sign out</button>
+    </div>
   </div>
 
   <nav class="nav">
     <button class="nav-btn active" onclick="showTab('leaderboard')" id="nav-leaderboard"><span class="icon">🏆</span>Board</button>
     <button class="nav-btn" onclick="showTab('play')" id="nav-play"><span class="icon">⛳</span>Play</button>
     <button class="nav-btn" onclick="showTab('history')" id="nav-history"><span class="icon">📋</span>History</button>
-    <button class="nav-btn" onclick="showTab('tournaments')" id="nav-tournaments"><span class="icon">🎖️</span>Events</button>
-    <button class="nav-btn" onclick="showTab('records')" id="nav-records"><span class="icon">🥇</span>Records</button>
     <button class="nav-btn" onclick="showTab('stats')" id="nav-stats"><span class="icon">📊</span>Stats</button>
-    <button class="nav-btn" onclick="showTab('board')" id="nav-board"><span class="icon">💬</span>Board</button>
-    <button class="nav-btn" onclick="showTab('players')" id="nav-players"><span class="icon">👥</span>Players</button>
+    <button class="nav-btn" onclick="toggleMoreMenu()" id="nav-more"><span class="icon">···</span>More</button>
   </nav>
+
+  <!-- MORE MENU -->
+  <div id="more-overlay" onclick="closeMoreMenu()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000"></div>
+  <div id="more-menu" style="display:none;position:fixed;bottom:0;left:0;right:0;background:white;border-radius:20px 20px 0 0;padding:16px 16px calc(84px + env(safe-area-inset-bottom));z-index:1001;box-shadow:0 -8px 32px rgba(0,0,0,0.18)">
+    <div style="width:40px;height:4px;background:#e0d8cc;border-radius:2px;margin:0 auto 14px"></div>
+    <div style="font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">More</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button class="more-menu-btn" data-tab="tournaments" onclick="showTabFromMore('tournaments')"><span class="icon">🎖️</span>Events</button>
+      <button class="more-menu-btn" data-tab="records" onclick="showTabFromMore('records')"><span class="icon">🥇</span>Records</button>
+      <button class="more-menu-btn" data-tab="board" onclick="showTabFromMore('board')"><span class="icon">💬</span>Club Board</button>
+      <button class="more-menu-btn" data-tab="players" onclick="showTabFromMore('players')"><span class="icon">👥</span>Players</button>
+    </div>
+    <button class="more-menu-btn" data-tab="admin" onclick="showTabFromMore('admin')" style="margin-top:10px;flex-direction:row;gap:10px;justify-content:center;background:linear-gradient(135deg,#1a3a2a,#2d5a3d);border-color:var(--gold);color:var(--gold)"><span class="icon">🔐</span>Admin</button>
+  </div>
 
   <div class="content">
 
@@ -750,21 +848,37 @@
       </div>
     </div>
 
-    <!-- PLAYERS TAB -->
+    <!-- PLAYERS TAB (read-only) -->
     <div id="tab-players" class="hidden">
       <div class="card">
         <div class="card-title">Player Roster</div>
+        <div id="roster-public-list"><div class="empty"><div class="icon">👤</div><p>No players yet.</p></div></div>
+      </div>
+    </div>
+
+    <!-- ADMIN TAB -->
+    <div id="tab-admin" class="hidden">
+      <div class="card" style="border:2px solid var(--gold)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(201,168,76,0.3)">
+          <div class="card-title" style="margin:0;padding:0;border:none">🔐 Admin Panel</div>
+          <button class="btn btn-outline btn-sm" onclick="lockAdmin()" style="font-size:11px;color:var(--text-light);border-color:#e0d8cc">Lock</button>
+        </div>
+
+        <div style="font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Player Roster</div>
         <div id="roster-list"></div>
-        <div style="margin-top:16px;padding-top:16px;border-top:1px solid #f0ebe0">
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid #f0ebe0">
           <div class="form-group"><label class="form-label">Name</label><input class="form-input" id="new-player-name" placeholder="e.g. Justin"></div>
           <div class="form-group"><label class="form-label">Handicap Index</label><input class="form-input" type="number" id="new-player-hcap" placeholder="e.g. 14.2" min="0" max="54" step="0.1"></div>
           <button class="btn btn-primary" onclick="addPlayer()">Add to Roster</button>
         </div>
-        <div style="margin-top:12px;padding-top:12px;border-top:1px solid #f0ebe0">
-          <div style="display:flex;gap:8px">
-            <button class="btn btn-outline" onclick="loadTestData()" style="font-size:12px;color:var(--text-light);border-color:#e0d8cc">🧪 Load Test Data</button>
-            <button class="btn btn-danger btn-sm" onclick="clearAllData()" style="font-size:12px">🗑 Clear All Data</button>
-          </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Data Management</div>
+        <p style="font-size:13px;color:var(--text-mid);margin-bottom:14px">Load sample data to test the app, or wipe everything and start fresh.</p>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <button class="btn btn-outline" onclick="loadTestData()" style="color:var(--text-mid);border-color:#e0d8cc">🧪 Load Test Data</button>
+          <button class="btn btn-danger" onclick="clearAllData()">🗑 Clear All Data</button>
         </div>
       </div>
     </div>
@@ -772,13 +886,42 @@
   </div><!-- end content -->
 </div><!-- end app -->
 
+<!-- PIN MODAL -->
+<div id="pin-modal" style="display:none;position:fixed;inset:0;background:rgba(26,58,42,0.97);z-index:300;align-items:center;justify-content:center;padding:24px">
+  <div style="background:white;border-radius:20px;padding:28px 24px;max-width:300px;width:100%;text-align:center">
+    <div style="font-size:36px;margin-bottom:8px">🔐</div>
+    <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--green-deep);margin-bottom:4px">Admin Access</div>
+    <div style="font-size:13px;color:var(--text-light);margin-bottom:20px">Enter your PIN to continue</div>
+    <div id="pin-dots" style="display:flex;gap:14px;justify-content:center;margin-bottom:24px">
+      <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+      <button class="pin-key" onclick="pinKey('1')">1</button>
+      <button class="pin-key" onclick="pinKey('2')">2</button>
+      <button class="pin-key" onclick="pinKey('3')">3</button>
+      <button class="pin-key" onclick="pinKey('4')">4</button>
+      <button class="pin-key" onclick="pinKey('5')">5</button>
+      <button class="pin-key" onclick="pinKey('6')">6</button>
+      <button class="pin-key" onclick="pinKey('7')">7</button>
+      <button class="pin-key" onclick="pinKey('8')">8</button>
+      <button class="pin-key" onclick="pinKey('9')">9</button>
+      <div></div>
+      <button class="pin-key" onclick="pinKey('0')">0</button>
+      <button class="pin-key" onclick="pinBackspace()">⌫</button>
+    </div>
+    <button class="btn btn-outline" onclick="closePinModal()">Cancel</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, set, get, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 window._firebase = { initializeApp, getDatabase, ref, set, get, push, onValue, update, remove };
+window._firebaseAuth = { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut };
 window._firebaseReady = true;
 window.dispatchEvent(new Event('firebaseReady'));
 </script>
@@ -807,9 +950,23 @@ const MODE_DESCRIPTIONS = {
   teams: 'Split players into two teams. Best net score per team counts on each hole. Set up team assignments after selecting players.'
 };
 
+// ─── ADMIN ───────────────────────────────────────────────────────────────────
+const ADMIN_PIN_HASH = '3504a42dccf2276ba33c5e8da9ae7a6729ab07bc8c0bf4fdf0a4375757838b67';
+let adminUnlocked = false;
+let pinEntry = '';
+
+async function hashPin(pin) {
+  const data = new TextEncoder().encode(pin);
+  const buf = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 // ─── STATE ───────────────────────────────────────────────────────────────────
 let db = null;
 let demoMode = false;
+let currentUser = null;
+let currentPlayer = null;
+let waitingForPlayerPick = false;
 let currentTab = 'leaderboard';
 let lbTab = 'net';
 let currentHole = 0;
@@ -841,6 +998,7 @@ window.saveFirebaseConfig = saveFirebaseConfig;
 function useDemoMode() {
   demoMode = true;
   document.getElementById('firebaseOverlay').style.display = 'none';
+  document.getElementById('loginOverlay').style.display = 'none';
   loadFromLocal();
   showToast('Demo mode — data stays on this device only');
 }
@@ -857,19 +1015,111 @@ function initFirebase(cfg) {
     window._fbRef = ref; window._fbSet = set; window._fbGet = get;
     window._fbPush = push; window._fbOnValue = onValue; window._fbUpdate = update; window._fbRemove = remove;
     document.getElementById('firebaseOverlay').style.display = 'none';
-    showToast('Connected to Firebase! ✓');
-    setupRealtimeListeners();
+    const { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } = window._firebaseAuth;
+    const auth = getAuth(app);
+    window._auth = auth;
+    window._GoogleAuthProvider = GoogleAuthProvider;
+    window._signInWithPopup = signInWithPopup;
+    window._signOut = signOut;
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        currentUser = user;
+        document.getElementById('loginOverlay').style.display = 'none';
+        checkUserMapping(user);
+      } else {
+        currentUser = null;
+        currentPlayer = null;
+        updateUserBadge();
+        document.getElementById('loginOverlay').style.display = 'flex';
+      }
+    });
   } catch(e) {
     showToast('Firebase error: ' + e.message);
     console.error(e);
   }
 }
 
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
+function signInWithGoogle() {
+  const provider = new window._GoogleAuthProvider();
+  window._signInWithPopup(window._auth, provider).catch(e => {
+    if (e.code === 'auth/unauthorized-domain') {
+      alert('Sign-in blocked: this page must be opened via a web server (e.g. VS Code Live Server), not directly from a file. See the setup instructions.');
+    } else {
+      showToast('Sign-in failed: ' + e.message);
+    }
+  });
+}
+window.signInWithGoogle = signInWithGoogle;
+
+function signOutUser() {
+  if (!confirm('Sign out?')) return;
+  window._signOut(window._auth);
+}
+window.signOutUser = signOutUser;
+
+async function checkUserMapping(user) {
+  try {
+    const snap = await window._fbGet(window._fbRef(db, `userMappings/${user.uid}`));
+    if (snap.val()) {
+      currentPlayer = snap.val();
+      updateUserBadge();
+      setupRealtimeListeners();
+    } else {
+      waitingForPlayerPick = true;
+      setupRealtimeListeners();
+    }
+  } catch(e) {
+    setupRealtimeListeners();
+  }
+}
+
+function showPlayerPicker() {
+  const el = document.getElementById('player-picker-list');
+  el.innerHTML = roster.length
+    ? roster.map(p => `<button onclick="pickPlayer('${p.id}','${encodeURIComponent(p.name)}')" style="display:block;width:100%;text-align:left;padding:12px;border:1.5px solid #e0d8cc;border-radius:10px;background:white;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:8px">${p.name} <span style="font-size:12px;font-weight:400;color:var(--text-light)">HCP ${p.hcap}</span></button>`).join('')
+    : '<p style="font-size:13px;color:var(--text-mid);margin-bottom:8px">No players yet — add yourself below.</p>';
+  document.getElementById('playerPickerOverlay').style.display = 'flex';
+}
+window.showPlayerPicker = showPlayerPicker;
+
+async function pickPlayer(id, encodedName) {
+  const name = decodeURIComponent(encodedName);
+  currentPlayer = { id, name };
+  await window._fbSet(window._fbRef(db, `userMappings/${currentUser.uid}`), { id, name });
+  document.getElementById('playerPickerOverlay').style.display = 'none';
+  updateUserBadge();
+  showToast(`Welcome, ${name}! ✓`);
+}
+window.pickPlayer = pickPlayer;
+
+async function createAndPickPlayer() {
+  const name = document.getElementById('new-player-name').value.trim();
+  const hcap = parseFloat(document.getElementById('new-player-hcap').value) || 0;
+  if (!name) { showToast('Enter your name'); return; }
+  const newRef = await window._fbPush(window._fbRef(db, 'roster'), { name, hcap });
+  await pickPlayer(newRef.key, encodeURIComponent(name));
+}
+window.createAndPickPlayer = createAndPickPlayer;
+
+function updateUserBadge() {
+  const badge = document.getElementById('user-badge');
+  const nameEl = document.getElementById('user-badge-name');
+  if (currentPlayer) {
+    badge.style.display = 'flex';
+    nameEl.textContent = currentPlayer.name;
+  } else {
+    badge.style.display = 'none';
+  }
+  updateMsgAuthorSelect();
+}
+
 function setupRealtimeListeners() {
   const { ref, onValue } = window._firebase;
   onValue(ref(db, 'roster'), snap => {
     roster = snap.val() ? Object.entries(snap.val()).map(([id, v]) => ({id, ...v})) : [];
-    renderRoster(); renderPlayerSelectList(); updateMsgAuthorSelect(); updateTournamentPlayerSelect();
+    renderRoster(); renderPublicRoster(); renderPlayerSelectList(); updateMsgAuthorSelect(); updateTournamentPlayerSelect();
+    if (waitingForPlayerPick) { waitingForPlayerPick = false; showPlayerPicker(); }
   });
   onValue(ref(db, 'rounds'), snap => {
     const data = snap.val();
@@ -905,7 +1155,7 @@ function loadFromLocal() {
 }
 
 function renderAll() {
-  renderRoster(); renderPlayerSelectList(); renderLeaderboard();
+  renderRoster(); renderPublicRoster(); renderPlayerSelectList(); renderLeaderboard();
   renderHistory(); renderTournaments(); renderBoard();
   updateMsgAuthorSelect(); updateTournamentPlayerSelect();
   if (activeRound) showActiveRoundCard(true);
@@ -969,16 +1219,22 @@ function selectMode(mode) {
 window.selectMode = selectMode;
 
 // ─── TAB NAVIGATION ───────────────────────────────────────────────────────────
+const PRIMARY_TABS = ['leaderboard', 'play', 'history', 'stats'];
+
 function showTab(tab) {
+  if (tab === 'admin' && !adminUnlocked) { showPinModal(); return; }
   document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
   document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.remove('hidden');
-  document.getElementById('nav-' + tab).classList.add('active');
+  const navEl = document.getElementById(PRIMARY_TABS.includes(tab) ? 'nav-' + tab : 'nav-more');
+  if (navEl) navEl.classList.add('active');
   currentTab = tab;
   if (tab === 'records') renderRecords();
   if (tab === 'stats') renderStatsPlayerSelect();
   if (tab === 'tournaments') renderTournaments();
   if (tab === 'board') renderBoard();
+  if (tab === 'players') renderPublicRoster();
+  if (tab === 'admin') { renderRoster(); }
   if (tab === 'play') {
     loadWeather();
     if (activeRound && !activeRound.finished) {
@@ -995,6 +1251,74 @@ function showTab(tab) {
   }
 }
 window.showTab = showTab;
+
+function toggleMoreMenu() {
+  const menu = document.getElementById('more-menu');
+  const overlay = document.getElementById('more-overlay');
+  if (menu.style.display !== 'none') { closeMoreMenu(); return; }
+  menu.style.display = 'block';
+  overlay.style.display = 'block';
+  document.querySelectorAll('.more-menu-btn').forEach(btn => {
+    btn.classList.toggle('active-secondary', btn.dataset.tab === currentTab);
+  });
+}
+function closeMoreMenu() {
+  document.getElementById('more-menu').style.display = 'none';
+  document.getElementById('more-overlay').style.display = 'none';
+}
+function showTabFromMore(tab) { closeMoreMenu(); showTab(tab); }
+window.toggleMoreMenu = toggleMoreMenu;
+window.closeMoreMenu = closeMoreMenu;
+window.showTabFromMore = showTabFromMore;
+
+// ─── PIN / ADMIN ──────────────────────────────────────────────────────────────
+function showPinModal() {
+  pinEntry = '';
+  updatePinDots();
+  document.getElementById('pin-modal').style.display = 'flex';
+}
+function closePinModal() {
+  pinEntry = '';
+  updatePinDots();
+  document.getElementById('pin-modal').style.display = 'none';
+}
+function pinKey(digit) {
+  if (pinEntry.length >= 4) return;
+  pinEntry += digit;
+  updatePinDots();
+  if (pinEntry.length === 4) {
+    const attempt = pinEntry;
+    hashPin(attempt).then(hash => {
+      if (hash === ADMIN_PIN_HASH) {
+        adminUnlocked = true;
+        closePinModal();
+        showTab('admin');
+        showToast('Admin unlocked 🔐');
+      } else {
+        const dots = document.getElementById('pin-dots');
+        dots.style.animation = 'pinShake 0.35s';
+        setTimeout(() => { dots.style.animation = ''; pinEntry = ''; updatePinDots(); }, 380);
+      }
+    });
+  }
+}
+function pinBackspace() {
+  pinEntry = pinEntry.slice(0, -1);
+  updatePinDots();
+}
+function updatePinDots() {
+  document.querySelectorAll('.pin-dot').forEach((dot, i) => dot.classList.toggle('filled', i < pinEntry.length));
+}
+function lockAdmin() {
+  adminUnlocked = false;
+  showTab('leaderboard');
+  showToast('Admin locked');
+}
+window.showPinModal = showPinModal;
+window.closePinModal = closePinModal;
+window.pinKey = pinKey;
+window.pinBackspace = pinBackspace;
+window.lockAdmin = lockAdmin;
 
 function setLbTab(tab) {
   lbTab = tab;
@@ -1197,6 +1521,19 @@ function renderRoster() {
     </div>`).join('');
 }
 
+function renderPublicRoster() {
+  const el = document.getElementById('roster-public-list');
+  if (!el) return;
+  if (!roster.length) { el.innerHTML = '<div class="empty"><div class="icon">👤</div><p>No players yet.</p></div>'; return; }
+  el.innerHTML = roster.map(p => `
+    <div class="player-chip">
+      <div>
+        <div class="player-chip-name">${p.name}</div>
+        <div class="player-chip-hcap">HCP ${p.hcap} · ${p.rounds || 0} rounds</div>
+      </div>
+    </div>`).join('');
+}
+
 function updateHcap(id, val) {
   const p = roster.find(r => r.id === id);
   if (p) { p.hcap = parseFloat(val) || 0; saveRoster(); }
@@ -1341,8 +1678,22 @@ function renderScoringView() {
 
 function renderHoleDots() {
   const el = document.getElementById('hole-dots');
-  el.innerHTML = COURSE.par.map((par, i) => {
-    const hasScore = activeRound.players.some((_,pi) => {
+  if (el.children.length === 18) {
+    // patch in place to avoid layout reflow and scroll jumping on mobile
+    COURSE.par.forEach((_, i) => {
+      const hasScore = activeRound.players.some((_, pi) => {
+        const key = activeRound.gameMode === 'scramble' ? 0 : pi;
+        return activeRound.scores?.[key]?.[i] !== undefined;
+      });
+      const isActive = i === currentHole;
+      const dot = el.children[i];
+      dot.style.width = isActive ? '20px' : '10px';
+      dot.style.background = isActive ? 'var(--gold)' : hasScore ? 'var(--green-light)' : '#ddd';
+    });
+    return;
+  }
+  el.innerHTML = COURSE.par.map((_, i) => {
+    const hasScore = activeRound.players.some((_, pi) => {
       const key = activeRound.gameMode === 'scramble' ? 0 : pi;
       return activeRound.scores?.[key]?.[i] !== undefined;
     });
@@ -1363,7 +1714,7 @@ function renderHole() {
 
   // Render hole map
   const mapEl = document.getElementById('hole-map-container');
-  if (mapEl) mapEl.innerHTML = renderHoleMap(h);
+  if (mapEl) { mapEl.innerHTML = renderHoleMap(h); requestAnimationFrame(() => initLeafletMap(h)); }
 
   const el = document.getElementById('hole-score-inputs');
   const tee = COURSE.tees[activeRound.tee || 'white'];
@@ -1436,7 +1787,9 @@ function scoreChanged(pi, h) {
   if (!activeRound.scores) activeRound.scores = {};
   if (!activeRound.scores[pi]) activeRound.scores[pi] = {};
   if (!isNaN(val) && val > 0) { activeRound.scores[pi][h] = val; colorScore(pi, h, val); }
+  const sv = window.scrollY;
   renderRunningTotals(); renderHoleDots();
+  requestAnimationFrame(() => window.scrollTo(0, sv));
   saveRound(activeRound); renderLeaderboard();
 }
 window.scoreChanged = scoreChanged;
@@ -2342,10 +2695,32 @@ const REACTIONS = ['👍','🔥','😂','🏌️','🦅','💩'];
 function updateMsgAuthorSelect() {
   const el = document.getElementById('msg-author');
   if (!el) return;
-  const current = el.value;
-  el.innerHTML = '<option value="">Select your name...</option>' +
-    roster.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
-  if (current) el.value = current;
+  if (currentPlayer) {
+    el.innerHTML = `<option value="${currentPlayer.name}">${currentPlayer.name}</option>`;
+    el.value = currentPlayer.name;
+    el.disabled = true;
+    el.style.background = '#f0ebe0';
+  } else {
+    el.disabled = false;
+    el.style.background = '';
+    const current = el.value;
+    el.innerHTML = '<option value="">Select your name...</option>' +
+      roster.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+    if (current) el.value = current;
+  }
+  const pollAuthor = document.getElementById('poll-author');
+  if (pollAuthor) {
+    if (currentPlayer) {
+      pollAuthor.innerHTML = `<option value="${currentPlayer.name}">${currentPlayer.name}</option>`;
+      pollAuthor.value = currentPlayer.name;
+      pollAuthor.disabled = true;
+      pollAuthor.style.background = '#f0ebe0';
+    } else {
+      pollAuthor.disabled = false;
+      pollAuthor.style.background = '';
+      pollAuthor.innerHTML = '<option value="">Select...</option>' + roster.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+    }
+  }
 }
 
 async function postMessage() {
@@ -2379,24 +2754,64 @@ async function deleteMessage(msgId) {
 }
 window.deleteMessage = deleteMessage;
 
+function _getPollVoters(pollVotes, optIdx) {
+  const v = pollVotes?.[optIdx];
+  if (!v) return [];
+  if (Array.isArray(v)) return v;
+  return Object.keys(v).filter(k => v[k]);
+}
+
+function _buildRepliesHtml(msg) {
+  if (!msg.replies || typeof msg.replies !== 'object') return '';
+  const list = Object.entries(msg.replies)
+    .map(([id, r]) => ({id, ...r}))
+    .sort((a, b) => a.createdAt - b.createdAt);
+  if (!list.length) return '';
+  return `<div style="margin-top:8px;border-left:2px solid #e0d8cc;padding-left:10px">
+    ${list.map(r => `<div class="reply-item">
+      <span class="message-author" style="font-size:13px">${r.author}</span>
+      <span class="message-time">${formatRelativeTime(r.createdAt)}</span>
+      <div class="message-text" style="font-size:13px;margin-top:2px">${escapeHtml(r.text)}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function _buildReplyBox(msgId, replyCount) {
+  const label = replyCount > 0 ? `💬 ${replyCount} repl${replyCount === 1 ? 'y' : 'ies'} · Reply` : '💬 Reply';
+  return `<div style="margin-top:6px">
+    <button class="reply-btn" onclick="toggleReplyBox('${msgId}')">${label}</button>
+    <div id="reply-box-${msgId}" style="display:none;margin-top:6px">
+      <div style="display:flex;gap:6px">
+        <input type="text" id="reply-text-${msgId}" class="form-input" placeholder="Write a reply..." style="flex:1;padding:6px 10px;font-size:13px" onkeydown="if(event.key==='Enter')postReply('${msgId}')">
+        <button onclick="postReply('${msgId}')" class="btn btn-gold btn-sm" style="flex-shrink:0;padding:6px 12px">Send</button>
+      </div>
+    </div>
+  </div>`;
+}
+
 function renderBoard() {
   const el = document.getElementById('board-messages');
   if (!el) return;
   if (!messages.length) { el.innerHTML = '<div class="empty"><div class="icon">💬</div><p>No messages yet.<br>Be the first to post!</p></div>'; return; }
+  const currentAuthor = document.getElementById('msg-author')?.value || '';
   el.innerHTML = messages.map(msg => {
     const timeStr = formatRelativeTime(msg.createdAt);
+    const replyCount = msg.replies ? Object.keys(msg.replies).length : 0;
     if (msg.isPoll) {
-      const totalVotes = Object.values(msg.pollVotes || {}).reduce((a, v) => a + (v?.length || 0), 0);
+      const totalVotes = (msg.pollOptions || []).reduce((a, _, i) => a + _getPollVoters(msg.pollVotes, i).length, 0);
+      const myVotedIdx = (msg.pollOptions || []).findIndex((_, i) => _getPollVoters(msg.pollVotes, i).includes(currentAuthor));
       const optionsHtml = (msg.pollOptions || []).map((opt, i) => {
-        const voters = (msg.pollVotes?.[i] || []);
+        const voters = _getPollVoters(msg.pollVotes, i);
         const count = voters.length;
-        const pct = totalVotes ? Math.round(count/totalVotes*100) : 0;
-        return `<div style="margin-bottom:8px" onclick="votePoll('${msg.id}',${i})">
+        const pct = totalVotes ? Math.round(count / totalVotes * 100) : 0;
+        const mine = myVotedIdx === i;
+        return `<div style="margin-bottom:8px;cursor:pointer" onclick="votePoll('${msg.id}',${i})">
           <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:3px">
-            <span>${opt}</span><span style="color:var(--text-light)">${count} vote${count!==1?'s':''}</span>
+            <span>${mine ? '✓ ' : ''}${opt}</span>
+            <span style="color:var(--text-light)">${count} vote${count !== 1 ? 's' : ''}</span>
           </div>
-          <div style="background:#f0ebe0;border-radius:6px;height:20px;overflow:hidden;cursor:pointer">
-            <div style="height:100%;width:${pct}%;background:var(--green-mid);border-radius:6px;transition:width 0.4s;display:flex;align-items:center;padding-left:6px">
+          <div style="background:${mine ? '#c8e6c9' : '#f0ebe0'};border-radius:6px;height:20px;overflow:hidden;border:${mine ? '1.5px solid var(--green-mid)' : 'none'}">
+            <div style="height:100%;width:${pct}%;background:${mine ? 'var(--green-mid)' : '#a5d6a7'};border-radius:6px;transition:width 0.4s;display:flex;align-items:center;padding-left:6px">
               ${pct > 10 ? `<span style="font-size:11px;color:white;font-weight:700">${pct}%</span>` : ''}
             </div>
           </div>
@@ -2410,7 +2825,9 @@ function renderBoard() {
         </div>
         <div class="message-text" style="font-weight:600;margin-bottom:10px">${escapeHtml(msg.text)}</div>
         ${optionsHtml}
-        <div style="font-size:11px;color:var(--text-light);margin-top:4px">Tap an option to vote · ${totalVotes} total vote${totalVotes!==1?'s':''}</div>
+        <div style="font-size:11px;color:var(--text-light);margin-top:4px">${myVotedIdx >= 0 ? 'Tap again to unvote · ' : 'Tap an option to vote · '}${totalVotes} total vote${totalVotes !== 1 ? 's' : ''}</div>
+        ${_buildRepliesHtml(msg)}
+        ${_buildReplyBox(msg.id, replyCount)}
       </div>`;
     }
     const reactionHtml = REACTIONS.map(emoji => {
@@ -2424,6 +2841,8 @@ function renderBoard() {
       </div>
       <div class="message-text">${escapeHtml(msg.text)}</div>
       <div class="message-reactions">${reactionHtml}</div>
+      ${_buildRepliesHtml(msg)}
+      ${_buildReplyBox(msg.id, replyCount)}
     </div>`;
   }).join('');
 }
@@ -2651,174 +3070,167 @@ async function loadWeather() {
 // ─── GPS DISTANCE TO GREEN ────────────────────────────────────────────────────
 // Approximate green coordinates for Stanhope GCC (lat/lon of each green)
 const HOLE_GREENS = [
-  [46.4108,-63.0571],[46.4118,-63.0548],[46.4129,-63.0562],[46.4140,-63.0578],
-  [46.4151,-63.0591],[46.4143,-63.0608],[46.4132,-63.0622],[46.4120,-63.0635],
-  [46.4109,-63.0648],[46.4097,-63.0661],[46.4086,-63.0648],[46.4074,-63.0635],
-  [46.4063,-63.0622],[46.4052,-63.0609],[46.4063,-63.0592],[46.4074,-63.0579],
-  [46.4086,-63.0566],[46.4097,-63.0578]
+  [46.410605289461955,-63.11087622624612],   // H1
+  [46.407378896767966,-63.10922471212564],   // H2
+  [46.40687338742106,-63.110013198000246],   // H3
+  [46.406030581722575,-63.11443955549164],   // H4
+  [46.407954569200825,-63.112790080040526],  // H5
+  [46.40746626017037,-63.11091500398037],    // H6
+  [46.4090135506537,-63.11421270301396],     // H7
+  [46.40989737029477,-63.111743477708245],   // H8
+  [46.41219273610477,-63.11518121520167],    // H9
+  [46.411403048153346,-63.113605986401936],  // H10
+  [46.4083082419119,-63.11583593414356],     // H11
+  [46.40515039609804,-63.1153009120097],     // H12
+  [46.40405738437366,-63.11856372591937],    // H13
+  [46.40167262766167,-63.11471443447445],    // H14
+  [46.4021466145673,-63.11950141656395],     // H15
+  [46.40559011586174,-63.116954988958184],   // H16
+  [46.40972074606387,-63.11800371241161],    // H17
+  [46.41146791703028,-63.11579502226533],    // H18
 ];
 
 let gpsWatchId = null;
 let userLat = null, userLon = null;
+let holeLeafletMap = null, playerLeafletMarker = null, distLeafletLine = null;
 
 // ─── HOLE LAYOUT DATA ─────────────────────────────────────────────────────────
 // Each hole: tee [lat,lon], fairway waypoints, green [lat,lon]
 // Based on Stanhope Golf & Country Club, PEI routing
 const HOLE_LAYOUTS = [
-  // H1 Par 5 - long dogleg right heading northeast
-  { tee:[46.4065,-63.0648], fairway:[[46.4072,-63.0638],[46.4082,-63.0622],[46.4096,-63.0608],[46.4104,-63.0585]], green:[46.4108,-63.0571] },
-  // H2 Par 4 - straight northeast
-  { tee:[46.4112,-63.0568], fairway:[[46.4115,-63.0558],[46.4117,-63.0551]], green:[46.4118,-63.0548] },
-  // H3 Par 3 - short, slight dogleg
-  { tee:[46.4121,-63.0544], fairway:[[46.4125,-63.0552]], green:[46.4129,-63.0562] },
-  // H4 Par 4 - heading south then east
-  { tee:[46.4132,-63.0564], fairway:[[46.4137,-63.0571],[46.4139,-63.0576]], green:[46.4140,-63.0578] },
-  // H5 Par 4 - heading south
-  { tee:[46.4143,-63.0581], fairway:[[46.4148,-63.0585],[46.4150,-63.0589]], green:[46.4151,-63.0591] },
-  // H6 Par 3 - heading southwest
-  { tee:[46.4154,-63.0594], fairway:[[46.4148,-63.0600]], green:[46.4143,-63.0608] },
-  // H7 Par 4 - heading south
-  { tee:[46.4145,-63.0611], fairway:[[46.4140,-63.0616],[46.4135,-63.0620]], green:[46.4132,-63.0622] },
-  // H8 Par 4 - heading south
-  { tee:[46.4130,-63.0624], fairway:[[46.4126,-63.0629],[46.4122,-63.0633]], green:[46.4120,-63.0635] },
-  // H9 Par 5 - heading south, long
-  { tee:[46.4118,-63.0637], fairway:[[46.4115,-63.0641],[46.4112,-63.0645],[46.4110,-63.0648]], green:[46.4109,-63.0648] },
-  // H10 Par 3 - short heading south
-  { tee:[46.4107,-63.0651], fairway:[[46.4101,-63.0656]], green:[46.4097,-63.0661] },
-  // H11 Par 4 - heading north
-  { tee:[46.4095,-63.0663], fairway:[[46.4090,-63.0657],[46.4087,-63.0652]], green:[46.4086,-63.0648] },
-  // H12 Par 5 - heading north, long
-  { tee:[46.4084,-63.0647], fairway:[[46.4080,-63.0642],[46.4077,-63.0638]], green:[46.4074,-63.0635] },
-  // H13 Par 3 - short heading north
-  { tee:[46.4072,-63.0634], fairway:[[46.4067,-63.0628]], green:[46.4063,-63.0622] },
-  // H14 Par 4 - heading north
-  { tee:[46.4061,-63.0621], fairway:[[46.4056,-63.0615],[46.4053,-63.0611]], green:[46.4052,-63.0609] },
-  // H15 Par 4 - dogleg heading northeast
-  { tee:[46.4050,-63.0607], fairway:[[46.4055,-63.0601],[46.4059,-63.0596]], green:[46.4063,-63.0592] },
-  // H16 Par 4 - heading northeast
-  { tee:[46.4065,-63.0591], fairway:[[46.4069,-63.0586],[46.4072,-63.0582]], green:[46.4074,-63.0579] },
-  // H17 Par 5 - heading northeast, long
-  { tee:[46.4076,-63.0578], fairway:[[46.4080,-63.0573],[46.4083,-63.0569]], green:[46.4086,-63.0566] },
-  // H18 Par 4 - heading northeast back to clubhouse
-  { tee:[46.4088,-63.0565], fairway:[[46.4092,-63.0571],[46.4094,-63.0575]], green:[46.4097,-63.0578] },
+  // H1
+  { tee:[46.41333398173907,-63.11451817007281], fairway:[[46.41252097807788,-63.112376566863006]], green:[46.410605289461955,-63.11087622624612] },
+  // H2
+  { tee:[46.41085165858135,-63.11049813263098], fairway:[[46.40888918334298,-63.11026074023776]], green:[46.407378896767966,-63.10922471212564] },
+  // H3
+  { tee:[46.40694807725177,-63.10889941136213], fairway:[], green:[46.40687338742106,-63.110013198000246] },
+  // H4
+  { tee:[46.407023310787935,-63.111036489895554], fairway:[[46.40751246772342,-63.1130931789901]], green:[46.406030581722575,-63.11443955549164] },
+  // H5
+  { tee:[46.40649781330069,-63.115029424819426], fairway:[[46.40814321100487,-63.113869221302465]], green:[46.407954569200825,-63.112790080040526] },
+  // H6
+  { tee:[46.408115247114296,-63.112376415962416], fairway:[], green:[46.40746626017037,-63.11091500398037] },
+  // H7
+  { tee:[46.407750978506584,-63.11043123828428], fairway:[[46.408784605992366,-63.11220201301384],[46.408954304932564,-63.112852131243]], green:[46.4090135506537,-63.11421270301396] },
+  // H8
+  { tee:[46.40850050950246,-63.11533810964333], fairway:[[46.40957845109031,-63.11449267527763],[46.40988718138857,-63.11359194486556]], green:[46.40989737029477,-63.111743477708245] },
+  // H9
+  { tee:[46.41002574140239,-63.11111400523778], fairway:[[46.41156810920296,-63.112629792971106],[46.4119044849235,-63.113310865636066]], green:[46.41219273610477,-63.11518121520167] },
+  // H10
+  { tee:[46.41181591527334,-63.115498713605206], fairway:[], green:[46.411403048153346,-63.113605986401936] },
+  // H11
+  { tee:[46.41100798650385,-63.11356606685992], fairway:[[46.40973376811942,-63.11553553030927],[46.409183703006505,-63.115863728445674],[46.408786817138065,-63.11594956488119]], green:[46.4083082419119,-63.11583593414356] },
+  // H12
+  { tee:[46.40875157903372,-63.11670893715575], fairway:[[46.407149148728024,-63.116188712040525],[46.40609906538015,-63.115666905660106]], green:[46.40515039609804,-63.1153009120097] },
+  // H13
+  { tee:[46.404956413913936,-63.1173182844969], fairway:[], green:[46.40405738437366,-63.11856372591937] },
+  // H14
+  { tee:[46.40324362396473,-63.11931879603314], fairway:[[46.4026616040492,-63.11749352100102],[46.40223573040592,-63.116220629472664]], green:[46.40167262766167,-63.11471443447445] },
+  // H15
+  { tee:[46.401052307517915,-63.11507253700461], fairway:[[46.401770813743866,-63.11780618755344]], green:[46.4021466145673,-63.11950141656395] },
+  // H16
+  { tee:[46.40426363042661,-63.12015540672148], fairway:[[46.405420176476014,-63.11950163038253],[46.40543197783177,-63.118218043770284],[46.40541545592146,-63.11757795908197]], green:[46.40559011586174,-63.116954988958184] },
+  // H17
+  { tee:[46.40586950247325,-63.116658548987004], fairway:[[46.40812752877213,-63.11830598072831],[46.408826882657394,-63.11839330225537]], green:[46.40972074606387,-63.11800371241161] },
+  // H18
+  { tee:[46.40869329877634,-63.11730800482299], fairway:[[46.41018519830956,-63.11638415128334]], green:[46.41146791703028,-63.11579502226533] },
 ];
 
-// ─── HOLE MAP SVG ─────────────────────────────────────────────────────────────
+// ─── HOLE MAP (Leaflet satellite) ─────────────────────────────────────────────
 function renderHoleMap(holeIndex) {
-  const layout = HOLE_LAYOUTS[holeIndex];
-  if (!layout) return '';
-
-  const allPts = [layout.tee, ...layout.fairway, layout.green];
-  if (userLat !== null && userLon !== null) allPts.push([userLat, userLon]);
-
-  const lats = allPts.map(p => p[0]);
-  const lons = allPts.map(p => p[1]);
-  const minLat = Math.min(...lats), maxLat = Math.max(...lats);
-  const minLon = Math.min(...lons), maxLon = Math.max(...lons);
-
-  const padLat = Math.max((maxLat - minLat) * 0.3, 0.0004);
-  const padLon = Math.max((maxLon - minLon) * 0.3, 0.0006);
-  const bMinLat = minLat - padLat, bMaxLat = maxLat + padLat;
-  const bMinLon = minLon - padLon, bMaxLon = maxLon + padLon;
-
-  const SVG_W = 280, SVG_H = 170;
-
-  const project = ([lat, lon]) => {
-    const x = ((lon - bMinLon) / (bMaxLon - bMinLon)) * SVG_W;
-    const y = SVG_H - ((lat - bMinLat) / (bMaxLat - bMinLat)) * SVG_H;
-    return [Math.round(x * 10) / 10, Math.round(y * 10) / 10];
-  };
-
-  const teeXY = project(layout.tee);
-  const greenXY = project(layout.green);
-  const fairwayXYs = layout.fairway.map(project);
-  const pathPts = [teeXY, ...fairwayXYs, greenXY];
-  const pathD = pathPts.map((p, i) => (i === 0 ? `M${p[0]},${p[1]}` : `L${p[0]},${p[1]}`)).join(' ');
-
   const distYards = (userLat !== null && userLon !== null)
-    ? Math.round(haversineM(userLat, userLon, layout.green[0], layout.green[1]) * 1.09361)
+    ? Math.round(haversineM(userLat, userLon, HOLE_LAYOUTS[holeIndex].green[0], HOLE_LAYOUTS[holeIndex].green[1]) * 1.09361)
     : null;
-
-  let playerDotSVG = '';
-  if (userLat !== null && userLon !== null) {
-    const [px, py] = project([userLat, userLon]);
-    playerDotSVG = `
-      <circle cx="${px}" cy="${py}" r="12" fill="rgba(41,128,185,0.2)" stroke="rgba(41,128,185,0.5)" stroke-width="1.5"/>
-      <circle cx="${px}" cy="${py}" r="6" fill="#2980b9" stroke="white" stroke-width="2.5"/>
-      <circle cx="${px}" cy="${py}" r="2.5" fill="white"/>`;
-  }
-
-  const [tx, ty] = teeXY;
-  const [gx, gy] = greenXY;
-
-  // Draw distance line from player to green
-  let distLineSVG = '';
-  if (userLat !== null && userLon !== null) {
-    const [px, py] = project([userLat, userLon]);
-    distLineSVG = `<line x1="${px}" y1="${py}" x2="${gx}" y2="${gy}" stroke="rgba(41,128,185,0.5)" stroke-width="1.5" stroke-dasharray="4,3"/>`;
-  }
-
   return `<div style="background:#1a3a2a;border-radius:12px;padding:12px;margin-bottom:12px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <div style="font-size:11px;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:1px">⛳ Hole ${holeIndex+1} Map</div>
-      ${distYards !== null
-        ? `<div style="font-size:14px;font-weight:800;color:#74b9ff">📍 ${distYards} yds to pin</div>`
-        : `<div style="font-size:11px;color:rgba(245,240,232,0.4)">Enable location for distance</div>`}
+      <div style="display:flex;align-items:center;gap:10px">
+        <div id="map-dist-display" style="font-size:14px;font-weight:800;color:#74b9ff">
+          ${distYards !== null ? `📍 ${distYards} yds to pin` : `<span style="font-size:11px;color:rgba(245,240,232,0.4)">Enable location for distance</span>`}
+        </div>
+        <div style="display:flex;gap:4px">
+          <button onclick="if(holeLeafletMap)holeLeafletMap.zoomIn()" style="background:rgba(255,255,255,0.15);border:none;color:white;width:28px;height:28px;border-radius:6px;font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center">+</button>
+          <button onclick="if(holeLeafletMap)holeLeafletMap.zoomOut()" style="background:rgba(255,255,255,0.15);border:none;color:white;width:28px;height:28px;border-radius:6px;font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
+        </div>
+      </div>
     </div>
-    <svg viewBox="0 0 ${SVG_W} ${SVG_H}" style="width:100%;height:auto;border-radius:8px;display:block">
-      <!-- Background rough -->
-      <rect width="${SVG_W}" height="${SVG_H}" fill="#2d5a3d" rx="8"/>
-      <!-- Rough texture dots -->
-      ${Array.from({length:30}, (_,i) => {
-        const rx = (i * 97) % SVG_W, ry = (i * 63) % SVG_H;
-        return `<circle cx="${rx}" cy="${ry}" r="1.5" fill="rgba(255,255,255,0.04)"/>`;
-      }).join('')}
-
-      <!-- Fairway (wide stroke) -->
-      <path d="${pathD}" fill="none" stroke="#4a9e5c" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
-      <!-- Fairway highlight -->
-      <path d="${pathD}" fill="none" stroke="#5db870" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
-      <!-- Fairway centre -->
-      <path d="${pathD}" fill="none" stroke="#70cc82" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
-
-      <!-- Distance dashed line -->
-      ${distLineSVG}
-
-      <!-- Green -->
-      <circle cx="${gx}" cy="${gy}" r="13" fill="#88d850" stroke="#5aad6c" stroke-width="2.5"/>
-      <circle cx="${gx}" cy="${gy}" r="8" fill="#a4e870" opacity="0.5"/>
-      <!-- Flag pole -->
-      <line x1="${gx}" y1="${gy-2}" x2="${gx}" y2="${gy-19}" stroke="white" stroke-width="1.8"/>
-      <!-- Flag -->
-      <polygon points="${gx},${gy-19} ${gx+9},${gy-14} ${gx},${gy-9}" fill="#e74c3c"/>
-
-      <!-- Tee box -->
-      <rect x="${tx-8}" y="${ty-5}" width="16" height="10" rx="2.5" fill="#c9a84c" stroke="#8a6020" stroke-width="1.5"/>
-      <text x="${tx}" y="${ty+2}" text-anchor="middle" font-size="7.5" fill="#1a1a1a" font-weight="bold" font-family="sans-serif">TEE</text>
-
-      <!-- Hole number badge -->
-      <rect x="4" y="4" width="24" height="16" rx="4" fill="rgba(0,0,0,0.4)"/>
-      <text x="16" y="15" text-anchor="middle" font-size="9" fill="${'#c9a84c'}" font-weight="bold" font-family="sans-serif">${holeIndex+1}</text>
-
-      <!-- Par badge -->
-      <rect x="${SVG_W-34}" y="4" width="30" height="16" rx="4" fill="rgba(0,0,0,0.4)"/>
-      <text x="${SVG_W-19}" y="15" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.8)" font-weight="bold" font-family="sans-serif">P${COURSE.par[holeIndex]}</text>
-
-      <!-- Player GPS dot -->
-      ${playerDotSVG}
-    </svg>
-    <div style="display:flex;justify-content:space-around;margin-top:8px">
-      <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:rgba(245,240,232,0.6)">
-        <div style="width:10px;height:6px;background:#c9a84c;border-radius:2px"></div> Tee
-      </div>
-      <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:rgba(245,240,232,0.6)">
-        <div style="width:10px;height:10px;background:#88d850;border-radius:50%"></div> Green
-      </div>
-      ${userLat !== null ? `<div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#74b9ff">
-        <div style="width:10px;height:10px;background:#2980b9;border-radius:50%;border:2px solid white"></div> You
-      </div>` : ''}
+    <div style="width:100%;height:250px;border-radius:8px;overflow:hidden;position:relative;background:#2d5a3d">
+      <div id="leaflet-hole-map" style="position:absolute;inset:0"></div>
     </div>
   </div>`;
+}
+
+function calcBearing(lat1, lon1, lat2, lon2) {
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const φ1 = lat1 * Math.PI / 180, φ2 = lat2 * Math.PI / 180;
+  const y = Math.sin(dLon) * Math.cos(φ2);
+  const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(dLon);
+  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+}
+
+function initLeafletMap(holeIndex) {
+  if (holeLeafletMap) { holeLeafletMap.remove(); holeLeafletMap = null; playerLeafletMarker = null; distLeafletLine = null; }
+  const mapEl = document.getElementById('leaflet-hole-map');
+  if (!mapEl || !window.L) return;
+  const layout = HOLE_LAYOUTS[holeIndex];
+  if (!layout) return;
+
+  const pathPoints = [layout.tee, ...layout.fairway, layout.green];
+
+  holeLeafletMap = L.map('leaflet-hole-map', {
+    zoomControl: false, attributionControl: false,
+    dragging: true, touchZoom: true, scrollWheelZoom: true,
+    doubleClickZoom: true, boxZoom: false, keyboard: false,
+  });
+
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19,
+  }).addTo(holeLeafletMap);
+
+  // Thin fairway line overlay
+  L.polyline(pathPoints, { color: '#70cc82', weight: 1.5, opacity: 0.9 }).addTo(holeLeafletMap);
+
+  // Tee marker
+  L.marker(layout.tee, { icon: L.divIcon({
+    html: `<div style="background:#c9a84c;color:#1a1a1a;font-size:9px;font-weight:bold;padding:3px 6px;border-radius:3px;border:1.5px solid #8a6020;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.5)">TEE</div>`,
+    className: '', iconAnchor: [18, 10],
+  }) }).addTo(holeLeafletMap);
+
+  // Flag/green marker
+  L.marker(layout.green, { icon: L.divIcon({
+    html: `<div style="position:relative;width:18px;height:26px"><div style="position:absolute;bottom:0;left:7px;width:2px;height:20px;background:white;box-shadow:0 0 3px rgba(0,0,0,0.6)"></div><div style="position:absolute;top:0;left:9px;width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;border-left:11px solid #e74c3c"></div></div>`,
+    className: '', iconAnchor: [8, 26],
+  }) }).addTo(holeLeafletMap);
+
+  holeLeafletMap.fitBounds(L.latLngBounds(pathPoints), { padding: [10, 10], maxZoom: 18 });
+
+  holeLeafletMap.invalidateSize();
+
+  if (userLat !== null && userLon !== null) _updatePlayerMarker(holeIndex);
+}
+
+function _updatePlayerMarker(holeIndex) {
+  if (!holeLeafletMap || userLat === null) return;
+  const layout = HOLE_LAYOUTS[holeIndex !== undefined ? holeIndex : currentHole];
+  if (!layout) return;
+
+  const playerIcon = L.divIcon({
+    html: `<div style="width:16px;height:16px;background:#2980b9;border:2.5px solid white;border-radius:50%;box-shadow:0 0 8px rgba(41,128,185,0.7)"></div>`,
+    className: '', iconAnchor: [8, 8],
+  });
+
+  if (playerLeafletMarker) {
+    playerLeafletMarker.setLatLng([userLat, userLon]);
+  } else {
+    playerLeafletMarker = L.marker([userLat, userLon], { icon: playerIcon }).addTo(holeLeafletMap);
+  }
+
+  const lineCoords = [[userLat, userLon], layout.green];
+  if (distLeafletLine) {
+    distLeafletLine.setLatLngs(lineCoords);
+  } else {
+    distLeafletLine = L.polyline(lineCoords, { color: '#74b9ff', weight: 2, opacity: 0.75, dashArray: '6,4' }).addTo(holeLeafletMap);
+  }
 }
 
 function haversineM(lat1, lon1, lat2, lon2) {
@@ -2850,9 +3262,13 @@ function updateGPSDisplay() {
   const meters = haversineM(userLat, userLon, green[0], green[1]);
   const yards = Math.round(meters * 1.09361);
   if (el) el.textContent = `📍 ${yards} yds to green`;
-  // Refresh hole map with updated player position
-  const mapEl = document.getElementById('hole-map-container');
-  if (mapEl) mapEl.innerHTML = renderHoleMap(currentHole);
+  // Update distance badge in map header
+  const distEl = document.getElementById('map-dist-display');
+  if (distEl) distEl.innerHTML = `📍 ${yards} yds to pin`;
+  // Move player dot on existing map (no full re-render)
+  if (holeLeafletMap) {
+    _updatePlayerMarker(currentHole);
+  }
 }
 
 // ─── OFFLINE MODE (Service Worker + cache) ───────────────────────────────────
@@ -3246,16 +3662,70 @@ async function votePoll(msgId, optIdx) {
   const msg = messages.find(m => m.id === msgId);
   if (!msg) return;
   if (!msg.pollVotes) msg.pollVotes = {};
-  // Remove existing vote from this person
-  Object.keys(msg.pollVotes).forEach(k => {
-    msg.pollVotes[k] = (msg.pollVotes[k] || []).filter(n => n !== author);
+  const alreadyVotedHere = _getPollVoters(msg.pollVotes, optIdx).includes(author);
+  if (demoMode) {
+    // Normalise old array format to object format
+    Object.keys(msg.pollVotes).forEach(k => {
+      if (Array.isArray(msg.pollVotes[k])) {
+        const obj = {};
+        msg.pollVotes[k].forEach(n => { obj[n] = true; });
+        msg.pollVotes[k] = obj;
+      }
+    });
+    // Remove from all options
+    Object.keys(msg.pollVotes).forEach(k => { delete msg.pollVotes[k][author]; });
+    // Add to chosen option unless toggling off
+    if (!alreadyVotedHere) {
+      if (!msg.pollVotes[optIdx]) msg.pollVotes[optIdx] = {};
+      msg.pollVotes[optIdx][author] = true;
+    }
+    localStorage.setItem('sgolf_messages', JSON.stringify(messages));
+    renderBoard();
+    return;
+  }
+  // Firebase: atomic multi-path update from root
+  const updates = {};
+  (msg.pollOptions || []).forEach((_, k) => {
+    if (_getPollVoters(msg.pollVotes, k).includes(author)) {
+      updates[`messages/${msgId}/pollVotes/${k}/${author}`] = null;
+    }
   });
-  if (!msg.pollVotes[optIdx]) msg.pollVotes[optIdx] = [];
-  msg.pollVotes[optIdx].push(author);
-  if (demoMode) { localStorage.setItem('sgolf_messages', JSON.stringify(messages)); renderBoard(); return; }
-  await window._fbUpdate(window._fbRef(db, `messages/${msgId}/pollVotes`), msg.pollVotes);
+  if (!alreadyVotedHere) {
+    updates[`messages/${msgId}/pollVotes/${optIdx}/${author}`] = true;
+  }
+  await window._fbUpdate(window._fbRef(db, '/'), updates);
 }
 window.votePoll = votePoll;
+
+async function postReply(msgId) {
+  const author = document.getElementById('msg-author').value;
+  if (!author) { showToast('Select your name to reply!'); return; }
+  const input = document.getElementById(`reply-text-${msgId}`);
+  const text = (input?.value || '').trim();
+  if (!text) return;
+  const reply = { author, text, createdAt: Date.now() };
+  if (demoMode) {
+    const msg = messages.find(m => m.id === msgId);
+    if (!msg) return;
+    if (!msg.replies) msg.replies = {};
+    msg.replies[`r${Date.now()}`] = reply;
+    localStorage.setItem('sgolf_messages', JSON.stringify(messages));
+    renderBoard();
+    return;
+  }
+  if (input) input.value = '';
+  await window._fbPush(window._fbRef(db, `messages/${msgId}/replies`), reply);
+}
+window.postReply = postReply;
+
+function toggleReplyBox(msgId) {
+  const box = document.getElementById(`reply-box-${msgId}`);
+  if (!box) return;
+  const open = box.style.display === 'none';
+  box.style.display = open ? 'block' : 'none';
+  if (open) document.getElementById(`reply-text-${msgId}`)?.focus();
+}
+window.toggleReplyBox = toggleReplyBox;
 
 // ─── TOAST ────────────────────────────────────────────────────────────────────
 function showToast(msg) {
